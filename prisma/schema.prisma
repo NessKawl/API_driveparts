@@ -1,0 +1,111 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model cai_caixa {
+  cai_id      Int       @id @default(autoincrement())
+  cai_entrada Float
+  cai_saida   Float
+  ven_id      Int
+  ven_venda   ven_venda @relation(fields: [ven_id], references: [ven_id])
+}
+
+model ven_venda {
+  ven_id        Int           @id @default(autoincrement())
+  ven_data      DateTime      @default(now())
+  ven_valor     Float
+  vend_status   Status
+  ven_pagamento String
+  ite_id        Int
+  ite_itemVenda ite_itemVenda @relation(fields: [ite_id], references: [ite_id])
+  usu_id        Int
+  usu_usuario   usu_usuario   @relation(fields: [usu_id], references: [usu_id])
+  cai_caixa     cai_caixa[]
+}
+
+model ite_itemVenda {
+  ite_id      Int         @id @default(autoincrement())
+  ite_qtd     Int
+  ite_valor   Float
+  pro_id      Int
+  pro_produto pro_produto @relation(fields: [pro_id], references: [pro_id])
+  ven_venda   ven_venda[]
+}
+
+model usu_usuario {
+  usu_id     Int         @id @default(autoincrement())
+  usu_nome   String
+  usu_tel    String
+  usu_senha  String
+  usu_status Boolean
+  ven_venda  ven_venda[]
+}
+
+model est_estoque {
+  est_id      Int         @id @default(autoincrement())
+  est_qtd     Int
+  est_data    DateTime    @default(now())
+  pro_id      Int
+  pro_produto pro_produto @relation(fields: [pro_id], references: [pro_id])
+}
+
+model pro_produto {
+  pro_id              Int             @id @default(autoincrement())
+  pro_nome            String
+  pro_desc            String
+  pro_valor           Float
+  pro_tipo            Tipo
+  pro_marca           String
+  pro_cod             String
+  pro_status          Boolean
+  pro_diametro        Float?
+  pro_espessura       Float?
+  pro_largura         Float?
+  pro_altura          Float?
+  pro_aro             Int?
+  pro_dentes          Int?
+  pro_compatibilidade String?
+  pro_viscosidade     String?
+  pro_material        String?
+  pro_pressao         Float?
+  pro_volume          Float?
+  pro_comprimento     String?
+  pro_lado            String?
+  pro_rosca           String?
+  pro_voltagem        Int?
+  pro_amperagem       Int?
+  pro_capacidade      Float?
+  pro_temperatura     String?
+  pro_nivelSonoro     Int?
+  pro_validade        DateTime
+  ite_itemVenda       ite_itemVenda[]
+  est_estoque         est_estoque[]
+}
+
+enum Status {
+  VENDA
+  RESERVA
+  CANCELADO
+}
+
+enum Tipo {
+  SUSPENSAO
+  FREIO
+  MOTOR
+  TRANSMISSAO
+  ELETRICA
+  LATARIA
+  ACESSORIOS
+}
