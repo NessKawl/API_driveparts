@@ -49,7 +49,7 @@ model usu_usuario {
   usu_nome   String
   usu_tel    String
   usu_senha  String
-  usu_status Boolean
+  usu_status Boolean @default(true)
   ven_venda  ven_venda[]
 }
 
