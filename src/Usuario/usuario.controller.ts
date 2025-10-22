@@ -6,11 +6,6 @@ import { CreateUserDto } from './dto/create-user.dto';
 @Controller('usuario')
 export class UsuarioController {
 
-    constructor(private readonly usuariService: UsuarioService) {}
-
-    @Post()
-    async createUser(@Body() createUserDto: CreateUserDto): Promise<usu_usuario> {
-        return this.usuariService.createUser(createUserDto);
-    }
+    constructor(private readonly usuariService: UsuarioService) { }
 
 }

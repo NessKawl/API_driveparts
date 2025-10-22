@@ -47,9 +47,12 @@ model ite_itemVenda {
 model usu_usuario {
   usu_id     Int         @id @default(autoincrement())
   usu_nome   String
-  usu_tel    String
-  usu_senha  String
-  usu_status Boolean @default(true)
+  usu_tel    String      @unique
+  usu_senha  String      @db.VarChar(255)
+  usu_tipo   TipoUsuario @default(CLIENTE)
+  usu_status Boolean     @default(true)
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
   ven_venda  ven_venda[]
 }
 
@@ -108,4 +111,9 @@ enum Tipo {
   ELETRICA
   LATARIA
   ACESSORIOS
+}
+
+enum TipoUsuario {
+  GERENTE
+  CLIENTE
 }
