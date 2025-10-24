@@ -18,13 +18,12 @@ import { PrismaModule } from 'src/prisma.module';
             imports: [ConfigModule],
             inject: [ConfigService],
             useFactory: async (configService: ConfigService) => ({
-                // É CRÍTICO que essa chave seja mantida em segredo (use .env)
-                secret: configService.get<string>('JWT_SECRET') || 'SUA_CHAVE_SECRETA_PADRAO',
-                signOptions: { expiresIn: '60m' }, // Token expira em 60 minutos
+                secret: configService.get<string>('JWT_SECRET') || '123456',
+                signOptions: { expiresIn: '60m' }, 
             }),
         }),
     ],
     controllers: [AuthController],
-    providers: [AuthService, LocalStrategy], // Adicione as estratégias aqui
+    providers: [AuthService, LocalStrategy], //estratégias 
 })
 export class AuthModule { }

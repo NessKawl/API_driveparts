@@ -69,10 +69,10 @@ model pro_produto {
   pro_nome            String
   pro_desc            String
   pro_valor           Float
-  pro_tipo            Tipo
+  pro_tipo            Tipo            @default(ACESSORIOS)
   pro_marca           String
   pro_cod             String
-  pro_status          Boolean
+  pro_status          Boolean         @default(true)
   pro_diametro        Float?
   pro_espessura       Float?
   pro_largura         Float?
@@ -92,7 +92,7 @@ model pro_produto {
   pro_capacidade      Float?
   pro_temperatura     String?
   pro_nivelSonoro     Int?
-  pro_validade        DateTime
+  pro_validade        DateTime?
   ite_itemVenda       ite_itemVenda[]
   est_estoque         est_estoque[]
 }
