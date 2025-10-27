@@ -8,4 +8,4 @@ export class UsuarioController {
 
     constructor(private readonly usuariService: UsuarioService) { }
 
-}
+}   

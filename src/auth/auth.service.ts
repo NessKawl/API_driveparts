@@ -50,7 +50,7 @@ export class AuthService {
     async login(user: any) {
         const payload = {
             usu_tel: user.usu_tel,
-            sub: user.id
+            sub: user.usu_id
         };
 
         return {
