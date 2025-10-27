@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: nestjs-api
+    env: docker
+    plan: free
+    region: oregon
+    buildCommand: docker build -t nest-api .
+    startCommand: docker run -p 10000:10000 nest-api
+    envVars:
+      - key: DATABASE_URL
+        fromService:
+          name: mysql
+          type: private_service
+
+  - type: private_service
+    name: mysql
+    env: docker
+    plan: free
+    dockerfilePath: ./mysql.Dockerfile
+    disk:
+      name: mysqldata
+      mountPath: /var/lib/mysql
+      sizeGB: 1
