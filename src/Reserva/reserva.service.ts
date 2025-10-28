@@ -2,6 +2,7 @@ import { Injectable, NotFoundException, BadRequestException } from '@nestjs/comm
 import { PrismaService } from 'src/prisma.service';
 import { Prisma, ven_venda, ite_itemVenda, est_estoque } from 'generated/prisma';
 import { CreateReservaDto } from './dto/create-reserva.dto';
+import { ReservaHistoricoDto } from './dto/reserva-historico.dto';
 
 // Define o tipo para o objeto de transação do Prisma, para melhor tipagem interna
 type TransactionPrisma = Parameters<Parameters<typeof PrismaService.prototype.$transaction>[0]>[0];
@@ -15,13 +16,13 @@ export class ReservaService {
 
     async criarReserva(usu_id: number, dto: CreateReservaDto): Promise<any> {
         return this.prismaService.$transaction(async (prisma) => {
-            
+
             const produto = await this.findProduct(prisma, dto.pro_id);
             this.validateEstoque(produto, dto.ite_qtd);
-            
+
             const estoque = produto.est_estoque[0];
             const { valorItem, itemVendaData } = this.prepareItemVenda(produto, dto);
-            
+
             const itemVenda = await this.createItemVenda(prisma, itemVendaData);
 
             const venda = await this.createVenda(prisma, usu_id, dto, valorItem, itemVenda);
@@ -52,7 +53,7 @@ export class ReservaService {
 
     private validateEstoque(produto: ProdutoComEstoque, quantidadeSolicitada: number): void {
         const estoque = produto.est_estoque[0];
-        
+
         if (!estoque || estoque.est_qtd < quantidadeSolicitada) {
             throw new BadRequestException('Quantidade indisponível em estoque');
         }
@@ -96,4 +97,24 @@ export class ReservaService {
             data: { est_qtd: { decrement: quantidade } },
         });
     }
+
+    // Históricos
+    async findReservasAtivas(usu_id: number): Promise<ReservaHistoricoDto[]> {
+        const reservas = await this.prismaService.ven_venda.findMany({
+            where: { usu_id: usu_id, vend_status: 'RESERVA' },
+            include: { ite_itemVenda: { include: { pro_produto: true } } },
+            orderBy: { ven_data: 'desc' },
+        });
+
+        return reservas as ReservaHistoricoDto[];
+    }
+
+    async findHistoricoGeral(usu_id: number): Promise<ReservaHistoricoDto[]> {
+        return this.prismaService.ven_venda.findMany({
+            where: {usu_id: usu_id, vend_status: { in: ['RESERVA', 'VENDA', 'CANCELADO'] },},
+            include: { ite_itemVenda: { include: { pro_produto: true, } } },
+            orderBy: {ven_data: 'desc' },
+        });
+    }
+
 }
