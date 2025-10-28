@@ -28,6 +28,7 @@ model ven_venda {
   ven_valor     Float
   vend_status   Status
   ven_pagamento String
+  ven_periodo   Periodo 
   ite_id        Int
   ite_itemVenda ite_itemVenda @relation(fields: [ite_id], references: [ite_id])
   usu_id        Int
@@ -116,4 +117,9 @@ enum Tipo {
 enum TipoUsuario {
   GERENTE
   CLIENTE
+}
+
+enum Periodo {
+  MANHA
+  TARDE
 }
