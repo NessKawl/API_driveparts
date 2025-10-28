@@ -33,14 +33,14 @@ export class ProdutoController {
         return this.produtoService.createProduct(createProductDto);
     }
 
-        @Patch('atualiza/:id')
-        async updateProduct(@Param('id') pro_id: string, @Body() data: Prisma.pro_produtoUpdateInput): Promise<pro_produto> {
+    @Patch('atualiza/:id')
+    async updateProduct(@Param('id') pro_id: string, @Body() data: Prisma.pro_produtoUpdateInput): Promise<pro_produto> {
 
-            const idNumber = parseInt(pro_id, 10)
+        const idNumber = parseInt(pro_id, 10)
 
-            return this.produtoService.updateProduct(
-                { pro_id: idNumber },
-                data
-            )
-        }
+        return this.produtoService.updateProduct(
+            { pro_id: idNumber },
+            data
+        )
+    }
 }
