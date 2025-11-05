@@ -4,6 +4,7 @@ import { Prisma, pro_produto } from 'generated/prisma';
 import { CreateProductDto } from './dto/create-product.dto';
 import { parse } from 'path';
 import { SearchProdutoDto } from './dto/search-produto.dto';
+import { FilterProdutoDto } from './dto/filter-produto.dto';
 
 
 @Controller('produto')
@@ -20,6 +21,11 @@ export class ProdutoController {
         return this.produtoService.buscarProdutosPorNome(termo);
     }
 
+    @Get('filter')
+    async filterProdutos(@Query() filterProdutoDto: FilterProdutoDto) {
+        return this.produtoService.FiltrarDadosOrdenados(filterProdutoDto)
+    }
+
     @Get(':id')
     async findOneProduct(
         @Param('id', ParseIntPipe) pro_id: number
@@ -34,7 +40,7 @@ export class ProdutoController {
         return product;
     }
 
-    
+
 
     @Post('cadastro')
     async createProduct(@Body() createProductDto: CreateProductDto) {
