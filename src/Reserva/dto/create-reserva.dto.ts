@@ -12,7 +12,7 @@ export class CreateReservaDto {
 
     @IsNotEmpty()
     @IsNumber()
-    ite_qtd: number
+    ite_quantidade: number
 
     @IsNotEmpty()
     @IsEnum(Periodo)

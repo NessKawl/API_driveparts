@@ -1,2 +1,0 @@
--- AlterTable
-ALTER TABLE `usu_usuario` ADD COLUMN `usu_tipo` ENUM('GERENTE', 'CLIENTE') NOT NULL DEFAULT 'CLIENTE';

@@ -1,8 +1,10 @@
-import { Body, Controller, Get, NotFoundException, Param, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Get, NotFoundException, Param, Patch, Post, Query, ParseIntPipe } from '@nestjs/common';
 import { ProdutoService } from './produto.service';
 import { Prisma, pro_produto } from 'generated/prisma';
 import { CreateProductDto } from './dto/create-product.dto';
 import { parse } from 'path';
+import { SearchProdutoDto } from './dto/search-produto.dto';
+
 
 @Controller('produto')
 export class ProdutoController {
@@ -13,20 +15,26 @@ export class ProdutoController {
         return this.produtoService.findAllProducts()
     }
 
-    @Get(':id')
-    async findOneProduct(@Param('id') pro_id: string): Promise<pro_produto> {
-        const idNumber = parseInt(pro_id, 10)
+    @Get('search')
+    async searchProdutos(@Query('termo') termo: string) {
+        return this.produtoService.buscarProdutosPorNome(termo);
+    }
 
-        const product = await this.produtoService.findOneProduct(
-            { pro_id: idNumber }
-        )
+    @Get(':id')
+    async findOneProduct(
+        @Param('id', ParseIntPipe) pro_id: number
+    ): Promise<pro_produto> {
+
+        const product = await this.produtoService.findOneProduct({ pro_id });
 
         if (!product) {
-            throw new NotFoundException(`Produto com ID ${pro_id} não encontrado`)
+            throw new NotFoundException(`Produto com ID ${pro_id} não encontrado`);
         }
 
         return product;
     }
+
+    
 
     @Post('cadastro')
     async createProduct(@Body() createProductDto: CreateProductDto) {

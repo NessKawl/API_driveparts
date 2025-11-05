@@ -20,7 +20,8 @@ export class AuthService {
         return this.prismaService.usu_usuario.create({
             data: {
                 ...data,
-                usu_senha: hashPassword
+                usu_senha: hashPassword,
+                usu_status: true
             }
         })
     }

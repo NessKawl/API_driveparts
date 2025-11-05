@@ -1,12 +1,6 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
-  provider = "prisma-client-js"
-  output   = "../generated/prisma"
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
 }
 
 datasource db {
@@ -16,95 +10,97 @@ datasource db {
 
 model cai_caixa {
   cai_id      Int       @id @default(autoincrement())
-  cai_entrada Float
-  cai_saida   Float
+  cai_entrada Float?
+  cai_saida   Float?
   ven_id      Int
-  ven_venda   ven_venda @relation(fields: [ven_id], references: [ven_id])
+  ven_venda   ven_venda @relation(fields: [ven_id], references: [ven_id], onDelete: Cascade, map: "fk_cai_caixa_ven_venda")
+
+  @@index([ven_id], map: "fk_cai_caixa_ven_venda")
 }
 
-model ven_venda {
-  ven_id        Int           @id @default(autoincrement())
-  ven_data      DateTime      @default(now())
-  ven_valor     Float
-  vend_status   Status
-  ven_pagamento String
-  ven_periodo   Periodo 
-  ite_id        Int
-  ite_itemVenda ite_itemVenda @relation(fields: [ite_id], references: [ite_id])
-  usu_id        Int
-  usu_usuario   usu_usuario   @relation(fields: [usu_id], references: [usu_id])
-  cai_caixa     cai_caixa[]
-}
-
-model ite_itemVenda {
-  ite_id      Int         @id @default(autoincrement())
-  ite_qtd     Int
-  ite_valor   Float
-  pro_id      Int
-  pro_produto pro_produto @relation(fields: [pro_id], references: [pro_id])
-  ven_venda   ven_venda[]
-}
-
-model usu_usuario {
-  usu_id     Int         @id @default(autoincrement())
-  usu_nome   String
-  usu_tel    String      @unique
-  usu_senha  String      @db.VarChar(255)
-  usu_tipo   TipoUsuario @default(CLIENTE)
-  usu_status Boolean     @default(true)
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
-  ven_venda  ven_venda[]
+model con_configuracoes {
+  con_id                Int                     @id @default(autoincrement())
+  con_nome              String                  @db.VarChar(255)
+  produto_configuracoes produto_configuracoes[]
 }
 
 model est_estoque {
-  est_id      Int         @id @default(autoincrement())
-  est_qtd     Int
-  est_data    DateTime    @default(now())
-  pro_id      Int
-  pro_produto pro_produto @relation(fields: [pro_id], references: [pro_id])
+  est_id         Int         @id @default(autoincrement())
+  est_data       DateTime    @default(now()) @db.DateTime(0)
+  pro_id         Int
+  est_quantidade Int
+  pro_produto    pro_produto @relation(fields: [pro_id], references: [pro_id], onDelete: Cascade, map: "fk_est_estoque_pro_produto")
+
+  @@index([pro_id], map: "fk_est_estoque_pro_produto")
+}
+
+model ite_itemvenda {
+  ite_id         Int         @id @default(autoincrement())
+  ite_valor      Float       @db.Float
+  pro_id         Int
+  ite_quantidade Int
+  pro_produto    pro_produto @relation(fields: [pro_id], references: [pro_id], onDelete: Cascade, onUpdate: Restrict, map: "fk_ite_itemvenda_pro_produto")
+  ven_venda      ven_venda[]
+
+  @@index([pro_id], map: "fk_ite_itemVenda_pro_produto")
 }
 
 model pro_produto {
-  pro_id              Int             @id @default(autoincrement())
-  pro_nome            String
-  pro_desc            String
-  pro_valor           Float
-  pro_tipo            Tipo            @default(ACESSORIOS)
-  pro_marca           String
-  pro_cod             String
-  pro_status          Boolean         @default(true)
-  pro_diametro        Float?
-  pro_espessura       Float?
-  pro_largura         Float?
-  pro_altura          Float?
-  pro_aro             Int?
-  pro_dentes          Int?
-  pro_compatibilidade String?
-  pro_viscosidade     String?
-  pro_material        String?
-  pro_pressao         Float?
-  pro_volume          Float?
-  pro_comprimento     String?
-  pro_lado            String?
-  pro_rosca           String?
-  pro_voltagem        Int?
-  pro_amperagem       Int?
-  pro_capacidade      Float?
-  pro_temperatura     String?
-  pro_nivelSonoro     Int?
-  pro_validade        DateTime?
-  ite_itemVenda       ite_itemVenda[]
-  est_estoque         est_estoque[]
+  pro_id                Int                     @id @default(autoincrement())
+  pro_nome              String                  @db.VarChar(255)
+  pro_desc              String                  @db.Text
+  pro_valor             Float                   @db.Float
+  pro_tipo              pro_produto_pro_tipo
+  pro_marca             String                  @db.VarChar(100)
+  pro_cod               String                  @db.VarChar(100)
+  pro_status            Boolean
+  est_estoque           est_estoque[]
+  ite_itemvenda         ite_itemvenda[]
+  produto_configuracoes produto_configuracoes[]
 }
 
-enum Status {
-  VENDA
-  RESERVA
-  CANCELADO
+model produto_configuracoes {
+  id                Int               @id @default(autoincrement())
+  con_id            Int
+  pro_id            Int
+  con_valor         String            @db.VarChar(255)
+  con_configuracoes con_configuracoes @relation(fields: [con_id], references: [con_id], onDelete: Cascade, map: "fk_produto_configuracoes_con_configuracoes")
+  pro_produto       pro_produto       @relation(fields: [pro_id], references: [pro_id], onDelete: Cascade, map: "fk_produto_configuracoes_pro_produto")
+
+  @@index([con_id], map: "idx_conf")
+  @@index([pro_id], map: "idx_prod")
 }
 
-enum Tipo {
+model usu_usuario {
+  usu_id     Int                  @id @default(autoincrement())
+  usu_nome   String               @db.VarChar(100)
+  usu_tel    String               @unique(map: "usu_tel") @db.VarChar(20)
+  usu_senha  String               @db.VarChar(255)
+  usu_status Boolean
+  createdAt  DateTime             @default(now()) @db.DateTime(0)
+  updatedAt  DateTime             @default(now()) @db.DateTime(0)
+  usu_tipo   usu_usuario_usu_tipo @default(CLIENTE)
+  ven_venda  ven_venda[]
+}
+
+model ven_venda {
+  ven_id        Int                   @id @default(autoincrement())
+  ven_data      DateTime              @default(now()) @db.DateTime(0)
+  ven_valor     Float                 @db.Float
+  ven_pagamento String                @db.VarChar(45)
+  ite_id        Int
+  usu_id        Int
+  ven_periodo   ven_venda_ven_periodo
+  ven_status    ven_venda_ven_status
+  cai_caixa     cai_caixa[]
+  ite_itemvenda ite_itemvenda         @relation(fields: [ite_id], references: [ite_id], onDelete: Cascade, map: "fk_ven_venda_ite_itemvenda")
+  usu_usuario   usu_usuario           @relation(fields: [usu_id], references: [usu_id], onDelete: Cascade, map: "fk_ven_venda_usu_usuario")
+
+  @@index([usu_id], map: "fk_ven_venda_usu_usuario")
+  @@index([ite_id], map: "fk_ven_venda_ite_itemVenda")
+}
+
+enum pro_produto_pro_tipo {
   SUSPENSAO
   FREIO
   MOTOR
@@ -114,12 +110,18 @@ enum Tipo {
   ACESSORIOS
 }
 
-enum TipoUsuario {
+enum ven_venda_ven_periodo {
+  MANHA
+  TARDE
+}
+
+enum usu_usuario_usu_tipo {
   GERENTE
   CLIENTE
 }
 
-enum Periodo {
-  MANHA
-  TARDE
+enum ven_venda_ven_status {
+  VENDA
+  RESERVA
+  CANCELADO
 }

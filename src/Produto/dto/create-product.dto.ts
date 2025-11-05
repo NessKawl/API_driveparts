@@ -1,4 +1,5 @@
 import { IsString, IsNotEmpty, IsDate, IsNumber, IsBoolean, IsEnum } from 'class-validator';
+import { pro_produto_pro_tipo } from 'generated/prisma';
 
 export enum Tipo {
     FREIO = 'FREIO',
@@ -31,4 +32,10 @@ export class CreateProductDto {
     @IsString()
     @IsNotEmpty()
     pro_cod: string;
+
+    @IsEnum(pro_produto_pro_tipo) // Exemplo de validação
+  pro_tipo: pro_produto_pro_tipo; 
+
+  @IsBoolean()
+  pro_status: boolean;
 }

@@ -2,6 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { Prisma, pro_produto } from 'generated/prisma';
 import { CreateProductDto } from './dto/create-product.dto'
+import { SearchProdutoDto } from './dto/search-produto.dto';
+
 
 @Injectable()
 export class ProdutoService {
@@ -30,4 +32,26 @@ export class ProdutoService {
             data
         })
     }
+
+
+async buscarProdutosPorNome(termo: string) {
+    return this.prismaService.pro_produto.findMany({
+      where: {
+        pro_nome: {
+          contains: termo,
+        },
+        pro_status: true, 
+      },
+     
+      include: {
+        produto_configuracoes: {
+          include: {
+            con_configuracoes: true, 
+          },
+        },
+      },
+      take: 10,
+      orderBy: { pro_nome: 'asc' },
+    });
+}
 }
