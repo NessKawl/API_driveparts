@@ -43,7 +43,7 @@ export class AuthService {
             const { usu_senha, ...result } = user;
             return result;
         }
-        
+
         console.log('ERRO: Senha inválida.');
         return null;
     }
@@ -51,11 +51,15 @@ export class AuthService {
     async login(user: any) {
         const payload = {
             usu_tel: user.usu_tel,
+            usu_nome: user.usu_nome,
             sub: user.usu_id
         };
 
+        const { usu_senha, ...userData } = user;
+
         return {
             access_token: this.jwtService.sign(payload),
+            user: userData
         };
     }
 }
