@@ -11,7 +11,6 @@ datasource db {
 model pro_produto {
   pro_id     Int     @id @default(autoincrement())
   pro_nome   String  @db.VarChar(45)
-  pro_desc   String  @db.VarChar(45)
   pro_valor  Int
   pro_cod    String  @db.VarChar(45)
   pro_marca  String  @db.VarChar(45)
@@ -50,8 +49,8 @@ model ite_itemVenda {
 model usu_usuario {
   usu_id     Int     @id @default(autoincrement())
   usu_nome   String  @db.VarChar(45)
-  usu_tel    String  @db.VarChar(45)
-  usu_senha  String  @db.VarChar(45)
+  usu_tel    String  @db.VarChar(45) @unique
+  usu_senha  String  
   usu_status Boolean @db.TinyInt
 
   ven_venda ven_venda[]

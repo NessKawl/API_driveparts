@@ -8,7 +8,7 @@ export class CreateUserDto {
         @IsNotEmpty()
         @IsString()
         usu_tel: string
-        
+
         @IsNotEmpty()
         @IsString()
         @MinLength(6)

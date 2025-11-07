@@ -6,10 +6,6 @@ export class CreateProductDto {
   @IsNotEmpty()
   pro_nome: string;
 
-  @IsString()
-  @IsNotEmpty()
-  pro_desc: string;
-
   @IsNotEmpty()
   @IsNumber()
   pro_valor: number;
