@@ -17,4 +17,5 @@ export class CreateReservaDto {
     @IsNotEmpty()
     @IsEnum(Periodo)
     periodo: Periodo;
+
 }

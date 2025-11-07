@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma.service';
-import { Prisma, ven_venda, ite_itemvenda, est_estoque } from 'generated/prisma';
+import { Prisma, ven_venda, ite_itemVenda, est_estoque } from 'generated/prisma';
 import { CreateReservaDto } from './dto/create-reserva.dto';
 import { ReservaHistoricoDto } from './dto/reserva-historico.dto';
 
@@ -52,7 +52,7 @@ export class ReservaService {
     private validateEstoque(produto: ProdutoComEstoque, quantidadeSolicitada: number): void {
         const estoque = produto.est_estoque[0];
 
-        if (!estoque || estoque.est_quantidade < quantidadeSolicitada) {
+        if (!estoque || estoque.est_qtd < quantidadeSolicitada) {
             throw new BadRequestException('Quantidade indisponível em estoque');
         }
     }
@@ -60,22 +60,22 @@ export class ReservaService {
     private prepareItemVenda(produto: ProdutoComEstoque, dto: CreateReservaDto) {
         const valorItem = dto.ite_quantidade * produto.pro_valor;
 
-        const itemVendaData: Prisma.ite_itemvendaUncheckedCreateInput = {
+        const itemVendaData: Prisma.ite_itemVendaUncheckedCreateInput = {
             pro_id: produto.pro_id,
-            ite_quantidade: dto.ite_quantidade,
+            ite_qtd: dto.ite_quantidade,
             ite_valor: valorItem,
         };
 
         return { valorItem, itemVendaData };
     }
 
-    private async createItemVenda(prisma: TransactionPrisma, itemVendaData: Prisma.ite_itemvendaUncheckedCreateInput): Promise<ite_itemvenda> {
-        return prisma.ite_itemvenda.create({
+    private async createItemVenda(prisma: TransactionPrisma, itemVendaData: Prisma.ite_itemVendaUncheckedCreateInput): Promise<ite_itemVenda> {
+        return prisma.ite_itemVenda.create({
             data: itemVendaData,
         });
     }
 
-    private async createVenda(prisma: TransactionPrisma, usu_id: number, dto: CreateReservaDto, valorItem: number, itemVenda: ite_itemvenda): Promise<ven_venda> {
+    private async createVenda(prisma: TransactionPrisma, usu_id: number, dto: CreateReservaDto, valorItem: number, itemVenda: ite_itemVenda): Promise<ven_venda> {
         // ... (código inalterado)
         return prisma.ven_venda.create({
             data: {
@@ -92,7 +92,7 @@ export class ReservaService {
     private async updateEstoque(prisma: TransactionPrisma, est_id: number, quantidade: number): Promise<est_estoque> {
         return prisma.est_estoque.update({
             where: { est_id: est_id },
-            data: { est_quantidade: { decrement: quantidade } },
+            data: { est_qtd: { decrement: quantidade } },
         });
     }
 
@@ -100,7 +100,7 @@ export class ReservaService {
     async findReservasAtivas(usu_id: number): Promise<ReservaHistoricoDto[]> {
         const reservas = await this.prismaService.ven_venda.findMany({
             where: { usu_id: usu_id, ven_status: 'RESERVA' },
-            include: { ite_itemvenda: { include: { pro_produto: true } } },
+            include: { ite_itemVenda: { include: { pro_produto: true } } },
             orderBy: { ven_data: 'desc' },
         });
 
@@ -109,8 +109,8 @@ export class ReservaService {
 
     async findHistoricoGeral(usu_id: number): Promise<ReservaHistoricoDto[]> {
         return this.prismaService.ven_venda.findMany({
-            where: {usu_id: usu_id, ven_status: { in: ['RESERVA', 'VENDA', 'CANCELADO'] },},
-            include: { ite_itemvenda: { include: { pro_produto: true, } } },
+            where: {usu_id: usu_id, ven_status: { in: ['CONCLUIDA', 'RESERVA', 'CANCELADA', 'EXPIRADA'] },},
+            include: { ite_itemVenda: { include: { pro_produto: true, } } },
             orderBy: {ven_data: 'desc' },
         });
     }

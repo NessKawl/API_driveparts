@@ -1,22 +1,21 @@
-// schema.prisma
-
 generator client {
   provider = "prisma-client-js"
+  output   = "../generated/prisma"
 }
 
 datasource db {
   provider = "mysql"
-  url      = env("DATABASE_URL")
+  url      = "mysql://root:2102@localhost:3306/pi_driveparts"
 }
 
 model pro_produto {
   pro_id     Int     @id @default(autoincrement())
   pro_nome   String  @db.VarChar(45)
   pro_desc   String  @db.VarChar(45)
-  pro_valor  String  @db.VarChar(45)
+  pro_valor  Int
   pro_cod    String  @db.VarChar(45)
   pro_marca  String  @db.VarChar(45)
-  pro_status Boolean @db.TinyInt
+  pro_status Boolean @default(true) @db.TinyInt
 
   est_estoque   est_estoque[]
   ite_itemVenda ite_itemVenda[]
@@ -62,9 +61,10 @@ model usu_usuario {
 
 model ven_venda {
   ven_id        Int       @id @default(autoincrement())
-  ven_data      DateTime
+  ven_data      DateTime  @default(now())
   ven_valor     Float
   ven_status    VenStatus
+  ven_periodo   VenPeriodo
   ven_pagamento String    @db.VarChar(45)
   ite_id        Int
   usu_id        Int
@@ -131,5 +131,11 @@ model pro_esp {
 enum VenStatus {
   CONCLUIDA
   RESERVA
-  STATUS
+  CANCELADA
+  EXPIRADA
+}
+
+enum VenPeriodo {
+  MANHA
+  TARDE
 }

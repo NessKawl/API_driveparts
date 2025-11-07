@@ -45,9 +45,9 @@ export class ProdutoService {
       },
 
       include: {
-        produto_configuracoes: {
+        pro_esp: {
           include: {
-            con_configuracoes: true,
+            esp_especificacao: true,
           },
         },
       },
