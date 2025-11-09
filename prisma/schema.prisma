@@ -5,31 +5,37 @@ generator client {
 
 datasource db {
   provider = "mysql"
-  url      = "mysql://root:2102@localhost:3306/pi_driveparts"
+  url      = env("DATABASE_URL")
 }
 
 model pro_produto {
-  pro_id     Int     @id @default(autoincrement())
-  pro_nome   String  @db.VarChar(45)
-  pro_valor  Int
-  pro_cod    String  @db.VarChar(45)
-  pro_marca  String  @db.VarChar(45)
-  pro_status Boolean @default(true) @db.TinyInt
+  pro_id               Int       @id @default(autoincrement())
+  pro_nome             String    @db.VarChar(45)
+  pro_valor            Int
+  pro_cod              String    @db.VarChar(45)
+  pro_marca            String    @db.VarChar(45)
+  pro_status           Boolean   @default(true) @db.TinyInt
+  pro_data_criacao     DateTime  @default(now())
+  pro_data_modificacao DateTime  @default(now())
+  pro_data_exclusao    DateTime?
 
-  est_estoque   est_estoque[]
-  ite_itemVenda ite_itemVenda[]
-  pro_esp       pro_esp[]
+  mov_movimentacao_estoque mov_movimentacao_estoque[]
+  ite_itemVenda            ite_itemVenda[]
+  pro_esp                  pro_esp[]
 
   @@map("pro_produto")
 }
 
-model est_estoque {
-  est_id   Int      @id @default(autoincrement())
-  est_data DateTime
-  est_qtd  Int
+model mov_movimentacao_estoque {
+  mov_id   Int      @id @default(autoincrement())
+  mov_data DateTime
+  mov_qtd  Int
+  mov_tipo MovTipo
   pro_id   Int
+  ven_id   Int?
 
   pro_produto pro_produto @relation(fields: [pro_id], references: [pro_id])
+  ven_venda   ven_venda?  @relation(fields: [ven_id], references: [ven_id])
 
   @@map("est_estoque")
 }
@@ -39,9 +45,10 @@ model ite_itemVenda {
   ite_qtd   Int
   ite_valor Float
   pro_id    Int
+  ven_id    Int
 
   pro_produto pro_produto @relation(fields: [pro_id], references: [pro_id])
-  ven_venda   ven_venda[]
+  ven_venda   ven_venda   @relation(fields: [ven_id], references: [ven_id])
 
   @@map("ite_itemVenda")
 }
@@ -49,8 +56,8 @@ model ite_itemVenda {
 model usu_usuario {
   usu_id     Int     @id @default(autoincrement())
   usu_nome   String  @db.VarChar(45)
-  usu_tel    String  @db.VarChar(45) @unique
-  usu_senha  String  
+  usu_tel    String  @unique @db.VarChar(45)
+  usu_senha  String
   usu_status Boolean @db.TinyInt
 
   ven_venda ven_venda[]
@@ -59,31 +66,20 @@ model usu_usuario {
 }
 
 model ven_venda {
-  ven_id        Int       @id @default(autoincrement())
-  ven_data      DateTime  @default(now())
-  ven_valor     Float
-  ven_status    VenStatus
-  ven_periodo   VenPeriodo
-  ven_pagamento String    @db.VarChar(45)
-  ite_id        Int
-  usu_id        Int
+  ven_id               Int        @id @default(autoincrement())
+  ven_data_criacao     DateTime   @default(now())
+  ven_data_modificacao DateTime   @default(now())
+  ven_valor            Float
+  ven_status           VenStatus
+  ven_periodo          VenPeriodo
+  ven_pagamento        String     @db.VarChar(45)
+  usu_id               Int
 
-  ite_itemVenda ite_itemVenda @relation(fields: [ite_id], references: [ite_id])
-  usu_usuario   usu_usuario   @relation(fields: [usu_id], references: [usu_id])
-  cai_caixa     cai_caixa[]
+  ite_itemVenda           ite_itemVenda[]
+  usu_usuario             usu_usuario                @relation(fields: [usu_id], references: [usu_id])
+  movMovimentacaoEstoques mov_movimentacao_estoque[]
 
   @@map("ven_venda")
-}
-
-model cai_caixa {
-  cai_id      Int   @id @default(autoincrement())
-  cai_entrada Float
-  cai_saida   Float
-  ven_id      Int
-
-  ven_venda ven_venda @relation(fields: [ven_id], references: [ven_id])
-
-  @@map("cai_caixa")
 }
 
 model cat_categoria {
@@ -137,4 +133,9 @@ enum VenStatus {
 enum VenPeriodo {
   MANHA
   TARDE
+}
+
+enum MovTipo {
+  COMPRA
+  VENDA
 }
