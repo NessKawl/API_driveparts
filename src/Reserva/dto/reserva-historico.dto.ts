@@ -22,6 +22,6 @@ export class ReservaHistoricoDto {
     ven_status: VenStatus;
     ven_pagamento: string;
     ven_periodo: VenPeriodo;
-    ven_data: Date;
+    ven_data_criacao: Date;
     ite_itemVenda: ItemVendaReservaDto;
 }
