@@ -1,0 +1,5 @@
+-- AlterTable
+ALTER TABLE `usu_usuario` ADD COLUMN `usu_data_criacao` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    ADD COLUMN `usu_data_exclusao` DATETIME(3) NULL,
+    ADD COLUMN `usu_data_modificacao` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    MODIFY `usu_senha` VARCHAR(255) NOT NULL;

@@ -5,7 +5,7 @@ generator client {
 
 datasource db {
   provider = "mysql"
-  url      = env("DATABASE_URL")
+  url      = "mysql://root:2102@localhost:3306/pi_driveparts"
 }
 
 model pro_produto {
@@ -54,13 +54,15 @@ model ite_itemVenda {
 }
 
 model usu_usuario {
-  usu_id     Int     @id @default(autoincrement())
-  usu_nome   String  @db.VarChar(45)
-  usu_tel    String  @unique @db.VarChar(45)
-  usu_senha  String
-  usu_status Boolean @db.TinyInt
-
-  ven_venda ven_venda[]
+  usu_id               Int         @id @default(autoincrement())
+  usu_nome             String      @db.VarChar(45)
+  usu_tel              String      @unique @db.VarChar(45)
+  usu_senha            String      @db.VarChar(255)
+  usu_status           Boolean     @db.TinyInt
+  usu_data_criacao     DateTime    @default(now())
+  usu_data_modificacao DateTime    @default(now())
+  usu_data_exclusao    DateTime?
+  ven_venda            ven_venda[]
 
   @@map("usu_usuario")
 }
