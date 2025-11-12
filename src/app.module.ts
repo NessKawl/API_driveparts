@@ -7,9 +7,10 @@ import { AuthModule } from './auth/auth.module';
 import { ProdutoModule } from './Produto/produto.module';
 import { PerfilModule } from './Perfil/perfil.module';
 import { ReservaModule } from './Reserva/reserva.module';
+import { DashboardReservaModule } from './Dashboard/dashboard.module';
 
 @Module({
-  imports: [UsuarioModule, AuthModule, ProdutoModule, PerfilModule, ReservaModule],
+  imports: [UsuarioModule, AuthModule, ProdutoModule, PerfilModule, ReservaModule, DashboardReservaModule],
   controllers: [AppController],
   providers: [AppService, PrismaService],
   exports: [PrismaService],

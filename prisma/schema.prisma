@@ -5,7 +5,7 @@ generator client {
 
 datasource db {
   provider = "mysql"
-  url      = "mysql://root:2102@localhost:3306/pi_driveparts"
+  url      = "mysql://root:@localhost:3306/pi_driveparts"
 }
 
 model pro_produto {
