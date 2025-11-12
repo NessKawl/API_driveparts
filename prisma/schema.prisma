@@ -18,6 +18,7 @@ model pro_produto {
   pro_data_criacao     DateTime  @default(now())
   pro_data_modificacao DateTime  @default(now())
   pro_data_exclusao    DateTime?
+  pro_caminho_img      String?    @db.VarChar(255)
 
   mov_movimentacao_estoque mov_movimentacao_estoque[]
   ite_itemVenda            ite_itemVenda[]
