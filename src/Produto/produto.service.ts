@@ -11,14 +11,76 @@ export class ProdutoService {
   constructor(private readonly prismaService: PrismaService) { }
 
   async findAllProducts(): Promise<pro_produto[]> {
-    return this.prismaService.pro_produto.findMany()
+    const produtos = await this.prismaService.pro_produto.findMany({
+      include: {
+        mov_movimentacao_estoque: {
+          select: {
+            mov_qtd: true,
+            mov_tipo: true,
+          },
+        },
+      },
+    });
+
+    return produtos.map((p) => {
+      const entradas = p.mov_movimentacao_estoque
+        .filter((m) => m.mov_tipo === 'COMPRA')
+        .reduce((acc, m) => acc + m.mov_qtd, 0);
+
+      const saidas = p.mov_movimentacao_estoque
+        .filter((m) => m.mov_tipo === 'VENDA')
+        .reduce((acc, m) => acc + m.mov_qtd, 0);
+
+      const estoqueAtual = entradas - saidas;
+
+      return {
+        pro_id: p.pro_id,
+        pro_nome: p.pro_nome,
+        pro_cod: p.pro_cod,
+        pro_marca: p.pro_marca,
+        pro_valor: p.pro_valor,
+        pro_status: p.pro_status,
+        pro_caminho_img: p.pro_caminho_img,
+        pro_data_criacao: p.pro_data_criacao,
+        pro_data_modificacao: p.pro_data_modificacao,
+        pro_data_exclusao: p.pro_data_exclusao,
+        estoque: estoqueAtual,
+      };
+    });
   }
 
-  async findOneProduct(where: Prisma.pro_produtoWhereUniqueInput): Promise<pro_produto | null> {
-    return this.prismaService.pro_produto.findUnique({
+
+  async findOneProduct(where: Prisma.pro_produtoWhereUniqueInput): Promise<any> {
+    const produto = await this.prismaService.pro_produto.findUnique({
       where,
-    })
+      include: {
+        mov_movimentacao_estoque: {
+          select: {
+            mov_qtd: true,
+            mov_tipo: true,
+          },
+        },
+      },
+    });
+
+    if (!produto) return null;
+
+    const entradas = produto.mov_movimentacao_estoque
+      .filter((m) => m.mov_tipo === 'COMPRA')
+      .reduce((acc, m) => acc + m.mov_qtd, 0);
+
+    const saidas = produto.mov_movimentacao_estoque
+      .filter((m) => m.mov_tipo === 'VENDA')
+      .reduce((acc, m) => acc + m.mov_qtd, 0);
+
+    const estoqueAtual = entradas - saidas;
+
+    return {
+      ...produto,
+      estoque: estoqueAtual,
+    };
   }
+
 
   async createProduct(data: CreateProductDto): Promise<pro_produto> {
     return this.prismaService.pro_produto.create({ data, });
@@ -57,9 +119,9 @@ export class ProdutoService {
   }
 
   async FiltrarDadosOrdenados(filterProdutoDto: FilterProdutoDto) {
-    const {campo, direcao} = filterProdutoDto;
+    const { campo, direcao } = filterProdutoDto;
 
-    const orderBy = campo && direcao ? { [campo]: direcao} : undefined; 
+    const orderBy = campo && direcao ? { [campo]: direcao } : undefined;
 
     return this.prismaService.pro_produto.findMany({
       orderBy: orderBy,
