@@ -16,6 +16,10 @@ export class ProdutoController {
         return this.produtoService.findAllProducts()
     }
 
+    @Get("all")
+    async BuscaProdutos(): Promise<pro_produto[]> {
+        return this.produtoService.BuscaProdutos()
+    }
     @Get('search')
     async searchProdutos(@Query('termo') termo: string) {
         return this.produtoService.buscarProdutosPorNome(termo);
