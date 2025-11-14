@@ -21,6 +21,12 @@ export class ProdutoController {
         return this.produtoService.buscarProdutosPorNome(termo);
     }
 
+    @Get("categoria")
+    async getPorCategoria(@Query("categoria") categoria: string) {
+        return this.produtoService.buscarProdutosPorCategoria(categoria);
+    }
+
+
     @Get('filter')
     async filterProdutos(@Query() filterProdutoDto: FilterProdutoDto) {
         return this.produtoService.FiltrarDadosOrdenados(filterProdutoDto)

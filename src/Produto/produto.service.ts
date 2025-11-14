@@ -118,6 +118,40 @@ export class ProdutoService {
     });
   }
 
+  async buscarProdutosPorCategoria(categoriaNome: string) {
+    return this.prismaService.pro_produto.findMany({
+      where: {
+        pro_status: true,
+        pro_esp: {
+          some: {
+            esp_especificacao: {
+              cat_categoria: {
+                cat_nome: {
+                  contains: categoriaNome,
+                },
+              },
+            },
+          },
+        },
+      },
+      include: {
+        pro_esp: {
+          include: {
+            esp_especificacao: {
+              include: {
+                cat_categoria: true,
+              },
+            },
+            met_metrica: true,
+          },
+        },
+      },
+      take: 20,
+      orderBy: { pro_nome: "asc" },
+    });
+  }
+
+
   async FiltrarDadosOrdenados(filterProdutoDto: FilterProdutoDto) {
     const { campo, direcao } = filterProdutoDto;
 
