@@ -7,12 +7,12 @@ import { AuthModule } from './auth/auth.module';
 import { ProdutoModule } from './Produto/produto.module';
 import { PerfilModule } from './Perfil/perfil.module';
 import { ReservaModule } from './Reserva/reserva.module';
-import { DashboardReservaModule } from './Dashboard/dashboard.module';
+import { DashboardModule } from './Dashboard/dashboard.module';
 import { UploadModule } from './upload/upload.module';
 import { MovimentacaoModule } from './Movimentacao/movimentacao.module';
 
 @Module({
-  imports: [UsuarioModule, AuthModule, ProdutoModule, PerfilModule, ReservaModule, DashboardReservaModule, UploadModule, MovimentacaoModule],
+  imports: [UsuarioModule, AuthModule, ProdutoModule, PerfilModule, ReservaModule, DashboardModule, UploadModule, MovimentacaoModule],
   controllers: [AppController],
   providers: [AppService, PrismaService],
   exports: [PrismaService],

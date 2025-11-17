@@ -27,7 +27,7 @@ export class ReservaController {
   async atualizarStatus(
     @AuthUser('id') usu_id: number,
     @Param('ven_id', ParseIntPipe) ven_id: number,
-    @Body('status') status: 'CANCELADA' | 'EXPIRADA'
+    @Body('status') status: 'CANCELADA'
   ) {
     return this.reservaService.atualizarStatusReserva(ven_id, status, usu_id);
   }

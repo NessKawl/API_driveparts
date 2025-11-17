@@ -107,8 +107,8 @@ export class ReservaService {
         });
     }
 
-    async atualizarStatusReserva(ven_id: number, novoStatus: 'CANCELADA' | 'EXPIRADA', usu_id: number) {
-        if (novoStatus !== 'CANCELADA' && novoStatus !== 'EXPIRADA') {
+    async atualizarStatusReserva(ven_id: number, novoStatus: 'CANCELADA', usu_id: number) {
+        if (novoStatus !== 'CANCELADA') {
             throw new BadRequestException('Status inválido para atualização.');
         }
 
@@ -133,7 +133,7 @@ export class ReservaService {
                 data: { ven_status: novoStatus },
             });
 
-            if (novoStatus === 'CANCELADA' || novoStatus === 'EXPIRADA') {
+            if (novoStatus === 'CANCELADA') {
                 for (const item of venda.ite_itemVenda) {
                     await prisma.mov_movimentacao_estoque.create({
                         data: {
