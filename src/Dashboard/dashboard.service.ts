@@ -76,4 +76,22 @@ export class DashboardService {
         return caixa;
     }
 
+    async listarTodasVendas() {
+        const vendas = await this.prisma.ven_venda.findMany({
+            
+            include: {
+                usu_usuario: { select: { usu_nome: true, usu_tel: true } },
+                ite_itemVenda: {
+                    include: {
+                        pro_produto: { select: { pro_nome: true, pro_valor: true, pro_marca: true } },
+                    },
+                },
+            },
+            where: {
+                ven_status: "CONCLUIDA",
+            }
+        });
+
+        return vendas;
+    }
 }

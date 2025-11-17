@@ -24,10 +24,15 @@ export class DashboardController {
   }
 
 
-    @Get('caixa-atual')
+  @Get('caixa-atual')
   async getCaixaAtual() {
     const caixa = await this.dashboardService.getCaixaAtual();
     return { caixa };
+  }
+
+  @Get('vendas/listarTodas')
+  async listarTodasVendas(){
+    return this.dashboardService.listarTodasVendas();
   }
 
   @Patch('reserva/:ven_id/status')
