@@ -78,7 +78,7 @@ export class DashboardService {
 
     async listarTodasVendas() {
         const vendas = await this.prisma.ven_venda.findMany({
-            
+
             include: {
                 usu_usuario: { select: { usu_nome: true, usu_tel: true } },
                 ite_itemVenda: {
@@ -94,4 +94,42 @@ export class DashboardService {
 
         return vendas;
     }
+
+    async getVendasPorPagamento() {
+        const vendas = await this.prisma.ven_venda.groupBy({
+            by: ['ven_pagamento'],
+            _count: { ven_id: true },
+        });
+
+        return vendas.map(v => ({
+            formaPagamento: v.ven_pagamento,
+            quantidade: v._count.ven_id || 0,
+        }));
+    }
+
+    async getMovimentacoes() {
+        const movimentacoes = await this.prisma.mov_movimentacao_estoque.findMany({
+            orderBy: { mov_id: 'desc' }, // ordena pelo id da movimentação, do mais novo para o mais antigo
+            select: {
+                mov_id: true,
+                mov_data: true,
+                mov_qtd: true,
+                mov_tipo: true,
+                pro_id: true,
+                pro_produto: { select: { pro_nome: true, pro_valor: true } },
+            },
+        });
+
+        return movimentacoes.map(m => ({
+            tipo: m.mov_tipo === 'VENDA' ? 'Entrada' : 'Saída',
+            descricao: `${m.mov_tipo === 'VENDA' ? 'Venda' : 'Compra'} do produto ${m.pro_produto.pro_nome}`,
+            valor: m.mov_qtd * m.pro_produto.pro_valor,
+            data: m.mov_data,        // <<< ESTE É O CERTO
+            id: m.mov_id,
+        }));
+
+    }
+
+
+
 }

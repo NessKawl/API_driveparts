@@ -31,8 +31,18 @@ export class DashboardController {
   }
 
   @Get('vendas/listarTodas')
-  async listarTodasVendas(){
+  async listarTodasVendas() {
     return this.dashboardService.listarTodasVendas();
+  }
+
+  @Get('vendas-por-pagamento')
+  async getVendasPorPagamento() {
+    return this.dashboardService.getVendasPorPagamento();
+  }
+
+  @Get('movimentacoes')
+  getMovimentacoes() {
+    return this.dashboardService.getMovimentacoes();
   }
 
   @Patch('reserva/:ven_id/status')
