@@ -8,26 +8,19 @@ import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 export class DashboardController {
   constructor(private readonly dashboardService: DashboardService) { }
 
-  @Get('reserva/listarTodas')
+  @Get('reservas/listarTodas')
   async listarTodas() {
     return this.dashboardService.listarTodasReservas();
   }
 
-  @Get('reserva/reservasAtivas')
+  @Get('reservas/reservasAtivas')
   async reservasAtivas() {
     return this.dashboardService.reservasAtivas();
   }
 
-  @Get("geral/ultimos30Dias")
+  @Get("vendas/ultimos30Dias")
   async ultimas30Dias() {
     return this.dashboardService.vendasUltimos30Dias();
-  }
-
-
-  @Get('caixa-atual')
-  async getCaixaAtual() {
-    const caixa = await this.dashboardService.getCaixaAtual();
-    return { caixa };
   }
 
   @Get('vendas/listarTodas')
@@ -35,22 +28,28 @@ export class DashboardController {
     return this.dashboardService.listarTodasVendas();
   }
 
-  @Get('vendas-por-pagamento')
+  @Get('vendas/vendasPorPagamento')
   async getVendasPorPagamento() {
     return this.dashboardService.getVendasPorPagamento();
   }
 
-  @Get('movimentacoes')
+  @Get('caixa/movimentacoes')
   getMovimentacoes() {
     return this.dashboardService.getMovimentacoes();
   }
 
-  @Patch('reserva/:ven_id/status')
+  @Get('caixa/caixaAtual')
+  async getCaixaAtual() {
+    const caixa = await this.dashboardService.getCaixaAtual();
+    return { caixa };
+  }
+
+  @Patch('reservas/:ven_id/status')
   async atualizarStatusDashboard(
     @AuthUser('id') usu_id: number,
     @Param('ven_id', ParseIntPipe) ven_id: number,
     @Body('status') status: 'CANCELADA',
   ) {
-    return this.dashboardService.atualizarStatusAdmin(ven_id, status, usu_id);
+    return this.dashboardService.atualizarStatusDashboard(ven_id, status, usu_id);
   }
 }

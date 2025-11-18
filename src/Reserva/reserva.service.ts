@@ -130,7 +130,7 @@ export class ReservaService {
 
             const vendaAtualizada = await prisma.ven_venda.update({
                 where: { ven_id },
-                data: { ven_status: novoStatus },
+                data: { ven_status: novoStatus, ven_data_modificacao: new Date() },
             });
 
             if (novoStatus === 'CANCELADA') {

@@ -22,7 +22,7 @@ export class DashboardService {
     }
 
 
-    async atualizarStatusAdmin(
+    async atualizarStatusDashboard(
         ven_id: number,
         status: 'CANCELADA',
         usu_id: number,
@@ -54,7 +54,6 @@ export class DashboardService {
             },
         });
     }
-
 
     async getCaixaAtual(): Promise<number> {
         const movimentacoes = await this.prisma.mov_movimentacao_estoque.findMany({
@@ -103,8 +102,9 @@ export class DashboardService {
 
         return vendas.map(v => ({
             formaPagamento: v.ven_pagamento,
-            quantidade: v._count.ven_id || 0,
+            valor: v._count.ven_id || 0,
         }));
+
     }
 
     async getMovimentacoes() {
