@@ -5,7 +5,6 @@ import { CreateProductDto } from './dto/create-product.dto'
 import { SearchProdutoDto } from './dto/search-produto.dto';
 import { FilterProdutoDto } from './dto/filter-produto.dto'
 
-
 @Injectable()
 export class ProdutoService {
   constructor(private readonly prismaService: PrismaService) { }
@@ -91,8 +90,6 @@ export class ProdutoService {
     });
   }
 
-
-
   async findOneProduct(where: Prisma.pro_produtoWhereUniqueInput): Promise<any> {
     const produto = await this.prismaService.pro_produto.findUnique({
       where,
@@ -103,6 +100,12 @@ export class ProdutoService {
             mov_tipo: true,
           },
         },
+        pro_esp: {
+          include: {
+            esp_especificacao: true,
+            met_metrica: true
+          }
+        }
       },
     });
 
@@ -119,11 +122,24 @@ export class ProdutoService {
     const estoqueAtual = entradas - saidas;
 
     return {
-      ...produto,
+      pro_id: produto.pro_id,
+      pro_nome: produto.pro_nome,
+      pro_cod: produto.pro_cod,
+      pro_marca: produto.pro_marca,
+      pro_valor: produto.pro_valor,
+      pro_status: produto.pro_status,
+      pro_caminho_img: produto.pro_caminho_img,
+      pro_data_criacao: produto.pro_data_criacao,
+      pro_data_modificacao: produto.pro_data_modificacao,
+      pro_data_exclusao: produto.pro_data_exclusao,
       estoque: estoqueAtual,
+      especificacoes: produto.pro_esp.map(esp => ({
+        nome: esp.esp_especificacao.esp_nome,
+        valor: esp.pro_esp_valor,
+        unidade: esp.met_metrica.met_nome
+      }))
     };
   }
-
 
   async createProduct(data: CreateProductDto): Promise<pro_produto> {
     return this.prismaService.pro_produto.create({ data, });
@@ -138,7 +154,6 @@ export class ProdutoService {
       data
     })
   }
-
 
   async buscarProdutosPorNome(termo: string) {
     return this.prismaService.pro_produto.findMany({
@@ -193,7 +208,6 @@ export class ProdutoService {
       orderBy: { pro_nome: "asc" },
     });
   }
-
 
   async FiltrarDadosOrdenados(filterProdutoDto: FilterProdutoDto) {
     const { campo, direcao } = filterProdutoDto;

@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { UsuarioService } from 'src/Usuario/usuario.service';
@@ -15,6 +15,14 @@ export class AuthService {
     ) { }
 
     async createUser(data: CreateUserDto): Promise<usu_usuario> {
+        const usuarioExistente = await this.prismaService.usu_usuario.findUnique({
+            where: { usu_tel: data.usu_tel }
+        });
+
+        if (usuarioExistente) {
+            throw new ConflictException('Telefone já cadastrado');
+        }
+
         const hashPassword = await bcrypt.hash(data.usu_senha, 10);
 
         return this.prismaService.usu_usuario.create({
