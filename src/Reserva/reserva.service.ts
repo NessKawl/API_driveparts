@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma.service';
 import { Prisma, ven_venda, ite_itemVenda, mov_movimentacao_estoque } from 'generated/prisma';
 import { CreateReservaDto } from './dto/create-reserva.dto';
@@ -256,19 +256,9 @@ export class ReservaService {
                 throw new BadRequestException(`Estoque insuficiente. Saldo atual: ${saldo}`);
             }
 
-            let venda = await prisma.ven_venda.findFirst({ where: { usu_id, ven_status: 'RESERVA' } });
+            let venda = await prisma.ven_venda.findUnique({ where: { ven_id: dto.ven_id } });
             if (!venda) {
-                venda = await prisma.ven_venda.create({
-                    data: {
-                        ven_valor: 0,
-                        ven_status: 'RESERVA',
-                        ven_pagamento: 'PENDENTE',
-                        ven_periodo: 'MANHA',
-                        usu_id,
-                        ven_data_criacao: new Date(),
-                        ven_data_modificacao: new Date(),
-                    },
-                });
+                throw new BadRequestException('Venda não encontrada.');
             }
             const itemExistente = await prisma.ite_itemVenda.findFirst({
                 where: { ven_id: venda.ven_id, pro_id: produtoId },
@@ -394,4 +384,40 @@ export class ReservaService {
             };
         });
     }
+
+    async criarNovaVenda(userId: number) {
+        const novaVenda = await this.prismaService.ven_venda.create({
+            data: {
+                ven_status: 'RESERVA',         // status da venda
+                ven_valor: 0,                  // valor inicial
+                ven_periodo: "MANHA",          // período padrão
+                ven_pagamento: 'PENDENTE',     // campo obrigatório
+                usu_usuario: { connect: { usu_id: userId } }, // usuário logado
+                ite_itemVenda: { create: [] }, // inicia sem itens
+                ven_data_criacao: new Date(),  // caso schema exija
+                ven_data_modificacao: new Date(),
+            },
+        });
+
+        return { id: novaVenda.ven_id }; // retorna o id para o frontend
+    }
+
+    async removerReserva(ven_id: number) {
+        // Verifica se a reserva existe
+        const reserva = await this.prismaService.ven_venda.findUnique({
+            where: { ven_id },
+            include: { ite_itemVenda: true } // inclui os itens para verificar se está vazia
+        });
+
+        if (!reserva) throw new NotFoundException('Reserva não encontrada');
+
+        // Só remove se estiver vazia
+        if (reserva.ite_itemVenda.length > 0) {
+            throw new Error('Reserva não está vazia');
+        }
+
+        await this.prismaService.ven_venda.delete({ where: { ven_id } });
+        return { message: 'Reserva removida com sucesso' };
+    }
+
 }

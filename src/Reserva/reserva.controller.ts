@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UseGuards, BadRequestException, Patch, Param, Get, Query, Delete } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, BadRequestException, Patch, Param, Get, Query, Delete, Req } from '@nestjs/common';
 import { ReservaService } from './reserva.service';
 import { CreateReservaDto } from './dto/create-reserva.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -27,7 +27,7 @@ export class ReservaController {
     @AuthUser('id') usu_id: number,
     @Body() dto: AdicionarItemDto,
   ) {
-    return this.reservaService.adicionarItem(usu_id, dto); 
+    return this.reservaService.adicionarItem(usu_id, dto);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -73,6 +73,16 @@ export class ReservaController {
     return this.reservaService.atualizarStatusReserva(ven_id, status, usu_id);
   }
 
+  @UseGuards(JwtAuthGuard)
+  @Post('nova')
+  async criarNovaVenda(@Req() req) {
+    const usuarioId = req.user.id; // pega id do usuário logado do JWT/session
+    const novaVenda = await this.reservaService.criarNovaVenda(usuarioId);
+    return novaVenda;
+  }
 
-
+  @Delete('remover/:ven_id')
+  async removerReserva(@Param('ven_id') ven_id: string) {
+    return this.reservaService.removerReserva(Number(ven_id));
+  }
 }
