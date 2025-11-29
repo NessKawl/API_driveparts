@@ -1,9 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
-import { Prisma, pro_produto } from 'generated/prisma';
+import { esp_especificacao, Prisma, pro_produto } from 'generated/prisma';
 import { CreateProductDto } from './dto/create-product.dto'
 import { SearchProdutoDto } from './dto/search-produto.dto';
 import { FilterProdutoDto } from './dto/filter-produto.dto'
+import { CreateEspecificacaoDto } from './dto/create-especificacao.dto';
+import { createProEspDto } from './dto/create-proEsp.dto';
 
 @Injectable()
 export class ProdutoService {
@@ -142,7 +144,23 @@ export class ProdutoService {
   }
 
   async createProduct(data: CreateProductDto): Promise<pro_produto> {
-    return this.prismaService.pro_produto.create({ data, });
+    return this.prismaService.pro_produto.create({ data });
+  }
+
+  async createEspecificacao(data: CreateEspecificacaoDto): Promise<Prisma.BatchPayload> {
+
+    const dadosEspecificacao = data.esp_nome.map(nome => ({
+      esp_nome: nome,
+      cat_id: data.cat_id
+    }))
+
+    return this.prismaService.esp_especificacao.createMany({
+      data: dadosEspecificacao
+    });
+  }
+
+  async vincularEspecificacao(createProEspDto: createProEspDto) {
+    return this.prismaService.pro_esp.create({ data: createProEspDto });
   }
 
   async updateProduct(
