@@ -1,20 +1,26 @@
-import { IsString, IsNotEmpty, IsDate, IsNumber, IsBoolean } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsArray, ValidateNested, IsString } from 'class-validator';
+import { Type } from 'class-transformer';
+
+class EspItemDto {
+  @IsNumber()
+  esp_id: number;
+
+  @IsString()
+  pro_esp_valor: string;
+}
 
 export class createProEspDto {
 
-  @IsString()
+  @IsNumber()
   @IsNotEmpty()
   pro_id: number;
 
-  @IsNotEmpty()
   @IsNumber()
-  esp_id: number;
-  
   @IsNotEmpty()
-  @IsString()
-  pro_esp_valor: string;
-
-  @IsNotEmpty()
-  @IsNumber()
   met_id: number;
+
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => EspItemDto)
+  esp: EspItemDto[];
 }

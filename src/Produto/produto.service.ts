@@ -159,8 +159,18 @@ export class ProdutoService {
     });
   }
 
-  async vincularEspecificacao(createProEspDto: createProEspDto) {
-    return this.prismaService.pro_esp.create({ data: createProEspDto });
+  async vincularEspecificacao(data: createProEspDto) {
+
+    const dadosProEsp = data.esp.map(item  => {
+    return {
+      pro_id: data.pro_id,
+      esp_id: item.esp_id,
+      pro_esp_valor: item.pro_esp_valor,
+      met_id: data.met_id
+    }
+  });
+    return this.prismaService.pro_esp.createMany({ data: dadosProEsp });
+
   }
 
   async updateProduct(
@@ -225,6 +235,24 @@ export class ProdutoService {
       take: 20,
       orderBy: { pro_nome: "asc" },
     });
+  }
+
+  async buscaUltimoProduto(): Promise<pro_produto | null> {
+    return this.prismaService.pro_produto.findFirst({
+      orderBy: {
+        pro_id: 'desc',
+      }
+    })
+
+  }
+
+  async buscaUltimaEsp(): Promise<esp_especificacao | null> {
+    return this.prismaService.esp_especificacao.findFirst({
+      orderBy: {
+        esp_id: 'desc'
+      }
+    })
+
   }
 
   async FiltrarDadosOrdenados(filterProdutoDto: FilterProdutoDto) {

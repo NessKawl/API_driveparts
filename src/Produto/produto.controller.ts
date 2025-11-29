@@ -1,6 +1,6 @@
 import { Body, Controller, Get, NotFoundException, Param, Patch, Post, Query, ParseIntPipe } from '@nestjs/common';
 import { ProdutoService } from './produto.service';
-import { Prisma, pro_produto } from 'generated/prisma';
+import { esp_especificacao, Prisma, pro_produto } from 'generated/prisma';
 import { CreateProductDto } from './dto/create-product.dto';
 import { parse } from 'path';
 import { SearchProdutoDto } from './dto/search-produto.dto';
@@ -16,6 +16,16 @@ export class ProdutoController {
     @Get()
     async findAllProducts(): Promise<pro_produto[]> {
         return this.produtoService.findAllProducts()
+    }
+
+    @Get("ultimo")
+    async buscaUltimoProduto(): Promise<pro_produto | null> {
+        return this.produtoService.buscaUltimoProduto()
+    }
+
+    @Get("ultimaEsp")
+    async buscaUltimaEsp(): Promise<esp_especificacao | null>  {
+        return this.produtoService.buscaUltimaEsp()
     }
 
     @Get("all")
@@ -52,17 +62,16 @@ export class ProdutoController {
         return product;
     }
 
-
     @Post('cadastro')
     async createProduct(@Body() createProductDto: CreateProductDto) {
         return this.produtoService.createProduct(createProductDto);
     }
 
-    @Post('cadastroEsp') 
+    @Post('cadastroEsp')
     async cadastrarEspecificacoes(@Body() createEspecificacoesDto: CreateEspecificacaoDto) {
         return this.produtoService.createEspecificacao(createEspecificacoesDto);
     }
-    
+
     @Post("vinculaEsp")
     async vincularEsp(@Body() createProEspDto: createProEspDto) {
         return this.produtoService.vincularEspecificacao(createProEspDto);
