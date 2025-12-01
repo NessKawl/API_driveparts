@@ -7,6 +7,9 @@ class EspItemDto {
 
   @IsString()
   pro_esp_valor: string;
+
+  @IsNumber()
+  met_id: number
 }
 
 export class createProEspDto {

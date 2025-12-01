@@ -5,8 +5,8 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { parse } from 'path';
 import { SearchProdutoDto } from './dto/search-produto.dto';
 import { FilterProdutoDto } from './dto/filter-produto.dto';
-import { CreateEspecificacaoDto } from './dto/create-especificacao.dto';
-import { createProEspDto } from './dto/create-proEsp.dto';
+import { CreateEspecificacaoDto } from '../Especificacao/dto/create-especificacao.dto';
+import { createProEspDto } from '../Especificacao/dto/create-proEsp.dto';
 
 
 @Controller('produto')
@@ -23,11 +23,6 @@ export class ProdutoController {
         return this.produtoService.buscaUltimoProduto()
     }
 
-    @Get("ultimaEsp")
-    async buscaUltimaEsp(): Promise<esp_especificacao | null>  {
-        return this.produtoService.buscaUltimaEsp()
-    }
-
     @Get("all")
     async BuscaProdutos(): Promise<pro_produto[]> {
         return this.produtoService.BuscaProdutos()
@@ -41,7 +36,6 @@ export class ProdutoController {
     async getPorCategoria(@Query("categoria") categoria: string) {
         return this.produtoService.buscarProdutosPorCategoria(categoria);
     }
-
 
     @Get('filter')
     async filterProdutos(@Query() filterProdutoDto: FilterProdutoDto) {
@@ -65,16 +59,6 @@ export class ProdutoController {
     @Post('cadastro')
     async createProduct(@Body() createProductDto: CreateProductDto) {
         return this.produtoService.createProduct(createProductDto);
-    }
-
-    @Post('cadastroEsp')
-    async cadastrarEspecificacoes(@Body() createEspecificacoesDto: CreateEspecificacaoDto) {
-        return this.produtoService.createEspecificacao(createEspecificacoesDto);
-    }
-
-    @Post("vinculaEsp")
-    async vincularEsp(@Body() createProEspDto: createProEspDto) {
-        return this.produtoService.vincularEspecificacao(createProEspDto);
     }
 
     @Patch('atualiza/:id')
