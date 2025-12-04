@@ -69,7 +69,6 @@ export class DashboardService {
         movimentacoes.forEach((mov) => {
             const valorTotal = mov.mov_qtd * mov.pro_produto.pro_valor;
             if (mov.mov_tipo === 'VENDA') caixa += valorTotal;
-            if (mov.mov_tipo === 'COMPRA') caixa -= valorTotal;
         });
 
         return caixa;

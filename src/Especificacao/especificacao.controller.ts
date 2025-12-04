@@ -1,6 +1,6 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseIntPipe, Post } from '@nestjs/common';
 import { EspecificacaoService } from './especificacao.service';
-import { esp_especificacao } from 'generated/prisma';
+import { esp_especificacao, pro_esp } from 'generated/prisma';
 import { CreateEspecificacaoDto } from './dto/create-especificacao.dto';
 import { createProEspDto } from './dto/create-proEsp.dto';
 
@@ -16,6 +16,16 @@ export class EspecificacaoController {
     @Get("ultimaEsp")
     async buscaUltimaEsp(): Promise<esp_especificacao | null> {
         return this.especificacaoService.buscaUltimaEsp()
+    }
+
+    @Get(':id')
+    async buscaEspecificacao(@Param('id', ParseIntPipe) esp_id: number): Promise<esp_especificacao | null> {
+        return this.especificacaoService.buscaEspecificacao(esp_id)
+    }
+
+    @Get("ProEsp/:id")
+    async buscar(@Param('id') id: string) {
+        return this.especificacaoService.buscaProEsp(Number(id));
     }
 
     @Post("vinculaEsp")

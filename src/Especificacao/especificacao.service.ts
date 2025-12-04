@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { CreateEspecificacaoDto } from 'src/Especificacao/dto/create-especificacao.dto';
-import { esp_especificacao, Prisma } from 'generated/prisma';
+import { esp_especificacao, Prisma, pro_esp } from 'generated/prisma';
 import { createProEspDto } from './dto/create-proEsp.dto';
 
 @Injectable()
@@ -45,5 +45,21 @@ export class EspecificacaoService {
             }
         })
 
+    }
+
+    async buscaProEsp(pro_id: number): Promise<pro_esp[]> {
+        return this.prismaService.pro_esp.findMany({
+            where: {
+                pro_id: pro_id
+            }
+        })
+    }
+
+    async buscaEspecificacao(esp_id: number): Promise<esp_especificacao | null> {
+        return this.prismaService.esp_especificacao.findFirst({
+            where: {
+                esp_id: esp_id
+            }
+        })
     }
 }
