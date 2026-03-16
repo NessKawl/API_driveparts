@@ -211,30 +211,39 @@ export class ReservaService {
     }
 
     async buscarReservaProduto(termo: string) {
-        if (!termo || termo.trim() === '') {
-            return this.prismaService.pro_produto.findMany({
-                where: {
-                    pro_status: true
-                }
-            });
-        }
-
-        return this.prismaService.pro_produto.findMany({
+        const produtos = await this.prismaService.pro_produto.findMany({
             where: {
                 pro_status: true,
-                OR: [
-                    {
-                        pro_nome: {
-                            contains: termo
-                        }
-                    },
-                    {
-                        pro_cod: {
-                            contains: termo
-                        }
-                    }
-                ]
+                ...(termo && termo.trim() !== '' && {
+                    OR: [
+                        { pro_nome: { contains: termo } },
+                        { pro_cod: { contains: termo } }
+                    ]
+                })
+            },
+            include: {
+                mov_movimentacao_estoque: true
             }
+        });
+
+        return produtos.map((produto) => {
+            let estoque = 0;
+
+            produto.mov_movimentacao_estoque.forEach((mov) => {
+                if (mov.mov_tipo === "COMPRA") estoque += mov.mov_qtd;
+                if (mov.mov_tipo === "VENDA") estoque -= mov.mov_qtd;
+            });
+
+            return {
+                pro_id: produto.pro_id,
+                pro_nome: produto.pro_nome,
+                pro_valor: produto.pro_valor,
+                pro_cod: produto.pro_cod,
+                pro_marca: produto.pro_marca,
+                pro_status: produto.pro_status,
+                pro_caminho_img: produto.pro_caminho_img,
+                estoque
+            };
         });
     }
 
@@ -403,20 +412,31 @@ export class ReservaService {
     }
 
     async removerReserva(ven_id: number) {
-        // Verifica se a reserva existe
+
         const reserva = await this.prismaService.ven_venda.findUnique({
-            where: { ven_id },
-            include: { ite_itemVenda: true } // inclui os itens para verificar se está vazia
+            where: { ven_id }
         });
 
-        if (!reserva) throw new NotFoundException('Reserva não encontrada');
-
-        // Só remove se estiver vazia
-        if (reserva.ite_itemVenda.length > 0) {
-            throw new Error('Reserva não está vazia');
+        if (!reserva) {
+            throw new NotFoundException('Reserva não encontrada');
         }
 
-        await this.prismaService.ven_venda.delete({ where: { ven_id } });
+        await this.prismaService.$transaction([
+
+            this.prismaService.ite_itemVenda.deleteMany({
+                where: { ven_id }
+            }),
+
+            this.prismaService.mov_movimentacao_estoque.deleteMany({
+                where: { ven_id }
+            }),
+
+            this.prismaService.ven_venda.delete({
+                where: { ven_id }
+            })
+
+        ]);
+
         return { message: 'Reserva removida com sucesso' };
     }
 
