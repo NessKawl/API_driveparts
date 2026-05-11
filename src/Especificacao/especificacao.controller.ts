@@ -8,6 +8,11 @@ import { createProEspDto } from './dto/create-proEsp.dto';
 export class EspecificacaoController {
     constructor(private especificacaoService: EspecificacaoService) { }
 
+    @Get('metricas')
+    async buscaMetricas() {
+        return this.especificacaoService.buscaMetricas()
+    }
+
     @Post('cadastroEsp')
     async cadastrarEspecificacoes(@Body() createEspecificacoesDto: CreateEspecificacaoDto) {
         return this.especificacaoService.createEspecificacao(createEspecificacoesDto);
@@ -33,8 +38,5 @@ export class EspecificacaoController {
         return this.especificacaoService.vincularEspecificacao(createProEspDto);
     }
 
-    @Get('metricas')
-    async buscaMetricas() {
-        return this.especificacaoService.buscaMetricas()
-    }
+
 }

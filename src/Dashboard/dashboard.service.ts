@@ -108,6 +108,9 @@ export class DashboardService {
 
     async getMovimentacoes() {
         const movimentacoes = await this.prisma.mov_movimentacao_estoque.findMany({
+            where: {
+                mov_tipo: 'VENDA',
+            },
             orderBy: { mov_id: 'desc' }, // ordena pelo id da movimentação, do mais novo para o mais antigo
             select: {
                 mov_id: true,

@@ -42,15 +42,14 @@ export class ProdutoController {
         return this.produtoService.FiltrarDadosOrdenados(filterProdutoDto)
     }
 
-    @Get(':id')
+    @Get(':uuid')
     async findOneProduct(
-        @Param('id', ParseIntPipe) pro_id: number
-    ): Promise<pro_produto> {
+        @Param('uuid') uuid: string): Promise<pro_produto> {
 
-        const product = await this.produtoService.findOneProduct({ pro_id });
+        const product = await this.produtoService.findOneProduct({ pro_aux_uuid: uuid });
 
         if (!product) {
-            throw new NotFoundException(`Produto com ID ${pro_id} não encontrado`);
+            throw new NotFoundException(`Produto com UUID ${uuid} não encontrado`);
         }
 
         return product;

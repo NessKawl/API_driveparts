@@ -10,6 +10,7 @@ datasource db {
 
 model pro_produto {
   pro_id               Int       @id @default(autoincrement())
+  pro_aux_uuid         String    @default(uuid()) @db.VarChar(36) @unique
   pro_nome             String    @db.VarChar(45)
   pro_valor            Int
   pro_cod              String    @db.VarChar(45)
@@ -56,6 +57,7 @@ model ite_itemVenda {
 
 model usu_usuario {
   usu_id               Int         @id @default(autoincrement())
+  usu_aux_uuid         String      @default(uuid()) @db.VarChar(36) @unique
   usu_nome             String      @db.VarChar(45)
   usu_tel              String      @unique @db.VarChar(45)
   usu_senha            String      @db.VarChar(255)
@@ -70,6 +72,7 @@ model usu_usuario {
 
 model ven_venda {
   ven_id               Int        @id @default(autoincrement())
+  ven_aux_uuid         String     @default(uuid()) @db.VarChar(36) @unique
   ven_data_criacao     DateTime   @default(now())
   ven_data_modificacao DateTime   @default(now())
   ven_valor            Float

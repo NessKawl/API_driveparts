@@ -39,6 +39,7 @@ export class ProdutoService {
 
       return {
         pro_id: p.pro_id,
+        pro_aux_uuid: p.pro_aux_uuid,
         pro_nome: p.pro_nome,
         pro_cod: p.pro_cod,
         pro_marca: p.pro_marca,
@@ -78,6 +79,7 @@ export class ProdutoService {
 
       return {
         pro_id: p.pro_id,
+        pro_aux_uuid: p.pro_aux_uuid,
         pro_nome: p.pro_nome,
         pro_cod: p.pro_cod,
         pro_marca: p.pro_marca,
@@ -125,6 +127,7 @@ export class ProdutoService {
 
     return {
       pro_id: produto.pro_id,
+      pro_aux_uuid: produto.pro_aux_uuid,
       pro_nome: produto.pro_nome,
       pro_cod: produto.pro_cod,
       pro_marca: produto.pro_marca,
