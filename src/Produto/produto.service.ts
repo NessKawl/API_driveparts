@@ -55,44 +55,54 @@ export class ProdutoService {
   }
 
   async BuscaProdutos(): Promise<pro_produto[]> {
-    const produtos = await this.prismaService.pro_produto.findMany({
-      include: {
-        mov_movimentacao_estoque: {
-          select: {
-            mov_qtd: true,
-            mov_tipo: true,
-          },
+  const produtos = await this.prismaService.pro_produto.findMany({
+    include: {
+      mov_movimentacao_estoque: {
+        select: {
+          mov_qtd: true,
+          mov_tipo: true,
         },
       },
-    });
+    },
+  });
 
-    return produtos.map((p) => {
-      const entradas = p.mov_movimentacao_estoque
-        .filter((m) => m.mov_tipo === 'COMPRA')
-        .reduce((acc, m) => acc + m.mov_qtd, 0);
+  return produtos.map((p) => {
+    const tiposEntrada = ["COMPRA", "DEVOLUCAO", "OUTROS"];
 
-      const saidas = p.mov_movimentacao_estoque
-        .filter((m) => m.mov_tipo === 'VENDA')
-        .reduce((acc, m) => acc + m.mov_qtd, 0);
+    const tiposSaida = [
+      "VENDA",
+      "DEFEITO",
+      "PERDA",
+      "VENCIMENTO",
+      "USO_E_CONSUMO",
+    ];
 
-      const estoqueAtual = entradas - saidas;
+    const entradas = p.mov_movimentacao_estoque
+      .filter((m) => tiposEntrada.includes(m.mov_tipo))
+      .reduce((acc, m) => acc + m.mov_qtd, 0);
 
-      return {
-        pro_id: p.pro_id,
-        pro_aux_uuid: p.pro_aux_uuid,
-        pro_nome: p.pro_nome,
-        pro_cod: p.pro_cod,
-        pro_marca: p.pro_marca,
-        pro_valor: p.pro_valor,
-        pro_status: p.pro_status,
-        pro_caminho_img: p.pro_caminho_img,
-        pro_data_criacao: p.pro_data_criacao,
-        pro_data_modificacao: p.pro_data_modificacao,
-        pro_data_exclusao: p.pro_data_exclusao,
-        estoque: estoqueAtual,
-      };
-    });
-  }
+    const saidas = p.mov_movimentacao_estoque
+      .filter((m) => tiposSaida.includes(m.mov_tipo))
+      .reduce((acc, m) => acc + m.mov_qtd, 0);
+
+    const estoqueAtual = entradas - saidas;
+
+    return {
+      pro_id: p.pro_id,
+      pro_aux_uuid: p.pro_aux_uuid,
+      pro_nome: p.pro_nome,
+      pro_cod: p.pro_cod,
+      pro_marca: p.pro_marca,
+      pro_valor: p.pro_valor,
+      pro_status: p.pro_status,
+      pro_caminho_img: p.pro_caminho_img,
+      pro_data_criacao: p.pro_data_criacao,
+      pro_data_modificacao: p.pro_data_modificacao,
+      pro_data_exclusao: p.pro_data_exclusao,
+      estoque: estoqueAtual,
+    };
+  });
+}
 
   async findOneProduct(where: Prisma.pro_produtoWhereUniqueInput): Promise<any> {
     const produto = await this.prismaService.pro_produto.findUnique({

@@ -9,18 +9,17 @@ datasource db {
 }
 
 model pro_produto {
-  pro_id               Int       @id @default(autoincrement())
-  pro_aux_uuid         String    @default(uuid()) @db.VarChar(36) @unique
-  pro_nome             String    @db.VarChar(45)
-  pro_valor            Int
-  pro_cod              String    @db.VarChar(45)
-  pro_marca            String    @db.VarChar(45)
-  pro_status           Boolean   @default(true) @db.TinyInt
-  pro_data_criacao     DateTime  @default(now())
-  pro_data_modificacao DateTime  @default(now())
-  pro_data_exclusao    DateTime?
-  pro_caminho_img      String?   @db.VarChar(255)
-
+  pro_id                   Int                        @id @default(autoincrement())
+  pro_aux_uuid             String                     @unique @default(uuid()) @db.VarChar(36)
+  pro_nome                 String                     @db.VarChar(45)
+  pro_valor                Int
+  pro_cod                  String                     @db.VarChar(45)
+  pro_marca                String                     @db.VarChar(45)
+  pro_status               Boolean                    @default(true)
+  pro_data_criacao         DateTime                   @default(now())
+  pro_data_modificacao     DateTime                   @default(now())
+  pro_data_exclusao        DateTime?
+  pro_caminho_img          String?                    @db.VarChar(255)
   mov_movimentacao_estoque mov_movimentacao_estoque[]
   ite_itemVenda            ite_itemVenda[]
   pro_esp                  pro_esp[]
@@ -29,39 +28,41 @@ model pro_produto {
 }
 
 model mov_movimentacao_estoque {
-  mov_id   Int      @id @default(autoincrement())
-  mov_data DateTime
-  mov_qtd  Int
-  mov_tipo MovTipo
-  pro_id   Int
-  ven_id   Int?
-
+  mov_id      Int         @id @default(autoincrement())
+  mov_data    DateTime
+  mov_qtd     Int
+  mov_tipo    MovTipo
+  pro_id      Int
+  ven_id      Int?
   pro_produto pro_produto @relation(fields: [pro_id], references: [pro_id])
   ven_venda   ven_venda?  @relation(fields: [ven_id], references: [ven_id])
 
+  @@index([pro_id], map: "est_estoque_pro_id_fkey")
+  @@index([ven_id], map: "est_estoque_ven_id_fkey")
   @@map("est_estoque")
 }
 
 model ite_itemVenda {
-  ite_id    Int   @id @default(autoincrement())
-  ite_qtd   Int
-  ite_valor Float
-  pro_id    Int
-  ven_id    Int
+  ite_id      Int         @id @default(autoincrement())
+  ite_qtd     Int
+  ite_valor   Float
+  pro_id      Int
+  ven_id      Int
+  pro_produto pro_produto @relation(fields: [pro_id], references: [pro_id], map: "ite_itemVenda_pro_id_fkey")
+  ven_venda   ven_venda   @relation(fields: [ven_id], references: [ven_id], map: "ite_itemVenda_ven_id_fkey")
 
-  pro_produto pro_produto @relation(fields: [pro_id], references: [pro_id])
-  ven_venda   ven_venda   @relation(fields: [ven_id], references: [ven_id])
-
-  @@map("ite_itemVenda")
+  @@index([pro_id], map: "ite_itemVenda_pro_id_fkey")
+  @@index([ven_id], map: "ite_itemVenda_ven_id_fkey")
+  @@map("ite_itemvenda")
 }
 
 model usu_usuario {
   usu_id               Int         @id @default(autoincrement())
-  usu_aux_uuid         String      @default(uuid()) @db.VarChar(36) @unique
+  usu_aux_uuid         String      @unique @default(uuid()) @db.VarChar(36)
   usu_nome             String      @db.VarChar(45)
   usu_tel              String      @unique @db.VarChar(45)
   usu_senha            String      @db.VarChar(255)
-  usu_status           Boolean     @db.TinyInt
+  usu_status           Boolean
   usu_data_criacao     DateTime    @default(now())
   usu_data_modificacao DateTime    @default(now())
   usu_data_exclusao    DateTime?
@@ -71,20 +72,20 @@ model usu_usuario {
 }
 
 model ven_venda {
-  ven_id               Int        @id @default(autoincrement())
-  ven_aux_uuid         String     @default(uuid()) @db.VarChar(36) @unique
-  ven_data_criacao     DateTime   @default(now())
-  ven_data_modificacao DateTime   @default(now())
-  ven_valor            Float
-  ven_status           VenStatus
-  ven_periodo          VenPeriodo
-  ven_pagamento        String     @db.VarChar(45)
-  usu_id               Int
-
+  ven_id                  Int                        @id @default(autoincrement())
+  ven_aux_uuid            String                     @unique @default(uuid()) @db.VarChar(36)
+  ven_data_criacao        DateTime                   @default(now())
+  ven_data_modificacao    DateTime                   @default(now())
+  ven_valor               Float
+  ven_status              VenStatus
+  ven_periodo             VenPeriodo
+  ven_pagamento           String                     @db.VarChar(45)
+  usu_id                  Int
+  movMovimentacaoEstoques mov_movimentacao_estoque[]
   ite_itemVenda           ite_itemVenda[]
   usu_usuario             usu_usuario                @relation(fields: [usu_id], references: [usu_id])
-  movMovimentacaoEstoques mov_movimentacao_estoque[]
 
+  @@index([usu_id], map: "ven_venda_usu_id_fkey")
   @@map("ven_venda")
 }
 
@@ -97,13 +98,13 @@ model cat_categoria {
 }
 
 model esp_especificacao {
-  esp_id   Int    @id @default(autoincrement())
-  esp_nome String @db.VarChar(45)
-  cat_id   Int
-
+  esp_id        Int           @id @default(autoincrement())
+  esp_nome      String        @db.VarChar(45)
+  cat_id        Int
   cat_categoria cat_categoria @relation(fields: [cat_id], references: [cat_id])
   pro_esp       pro_esp[]
 
+  @@index([cat_id], map: "esp_especificacao_cat_id_fkey")
   @@map("esp_especificacao")
 }
 
@@ -116,16 +117,17 @@ model met_metrica {
 }
 
 model pro_esp {
-  pro_id        Int
-  esp_id        Int
-  pro_esp_valor String @db.VarChar(45)
-  met_id        Int
-
-  pro_produto       pro_produto       @relation(fields: [pro_id], references: [pro_id])
+  pro_id            Int
+  esp_id            Int
+  pro_esp_valor     String            @db.VarChar(45)
+  met_id            Int
   esp_especificacao esp_especificacao @relation(fields: [esp_id], references: [esp_id])
   met_metrica       met_metrica       @relation(fields: [met_id], references: [met_id])
+  pro_produto       pro_produto       @relation(fields: [pro_id], references: [pro_id])
 
   @@id([pro_id, esp_id])
+  @@index([esp_id], map: "pro_esp_esp_id_fkey")
+  @@index([met_id], map: "pro_esp_met_id_fkey")
   @@map("pro_esp")
 }
 
@@ -144,4 +146,10 @@ enum VenPeriodo {
 enum MovTipo {
   COMPRA
   VENDA
+  DEFEITO
+  PERDA
+  VENCIMENTO
+  USO_E_CONSUMO
+  DEVOLUCAO
+  OUTROS
 }

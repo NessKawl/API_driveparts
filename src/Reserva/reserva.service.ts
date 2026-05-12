@@ -230,41 +230,68 @@ export class ReservaService {
     }
 
     async buscarReservaProduto(termo: string) {
-        const produtos = await this.prismaService.pro_produto.findMany({
-            where: {
-                pro_status: true,
-                ...(termo && termo.trim() !== '' && {
-                    OR: [
-                        { pro_nome: { contains: termo } },
-                        { pro_cod: { contains: termo } }
-                    ]
-                })
+    const produtos = await this.prismaService.pro_produto.findMany({
+        where: {
+            pro_status: true,
+            ...(termo && termo.trim() !== '' && {
+                OR: [
+  {
+    pro_nome: {
+      contains: termo,
+    },
+  },
+  {
+    pro_cod: {
+      contains: termo,
+    },
+  },
+],
+            }),
+        },
+
+        include: {
+            mov_movimentacao_estoque: {
+                select: {
+                    mov_qtd: true,
+                    mov_tipo: true,
+                },
             },
-            include: {
-                mov_movimentacao_estoque: true
-            }
-        });
+        },
+    });
 
-        return produtos.map((produto) => {
-            let estoque = 0;
+    return produtos.map((produto) => {
+        const entradas = produto.mov_movimentacao_estoque
+            .filter((mov) =>
+                ['COMPRA', 'DEVOLUCAO', 'OUTROS'].includes(mov.mov_tipo),
+            )
+            .reduce((acc, mov) => acc + mov.mov_qtd, 0);
 
-            produto.mov_movimentacao_estoque.forEach((mov) => {
-                if (mov.mov_tipo === "COMPRA") estoque += mov.mov_qtd;
-                if (mov.mov_tipo === "VENDA") estoque -= mov.mov_qtd;
-            });
+        const saidas = produto.mov_movimentacao_estoque
+            .filter((mov) =>
+                [
+                    'VENDA',
+                    'DEFEITO',
+                    'PERDA',
+                    'VENCIMENTO',
+                    'USO_E_CONSUMO',
+                ].includes(mov.mov_tipo),
+            )
+            .reduce((acc, mov) => acc + mov.mov_qtd, 0);
 
-            return {
-                pro_id: produto.pro_id,
-                pro_nome: produto.pro_nome,
-                pro_valor: produto.pro_valor,
-                pro_cod: produto.pro_cod,
-                pro_marca: produto.pro_marca,
-                pro_status: produto.pro_status,
-                pro_caminho_img: produto.pro_caminho_img,
-                estoque
-            };
-        });
-    }
+        const estoque = entradas - saidas;
+
+        return {
+            pro_id: produto.pro_id,
+            pro_nome: produto.pro_nome,
+            pro_valor: produto.pro_valor,
+            pro_cod: produto.pro_cod,
+            pro_marca: produto.pro_marca,
+            pro_status: produto.pro_status,
+            pro_caminho_img: produto.pro_caminho_img,
+            estoque,
+        };
+    });
+}
 
     async adicionarItem(usu_id: number, dto: AdicionarItemDto) {
         const { pro_id: produtoId, quantidade, ite_valor_unit } = dto;
