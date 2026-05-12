@@ -18,7 +18,7 @@ export class ReservaService {
                 throw new BadRequestException('A quantidade deve ser maior que zero');
             }
 
-            const produto = await this.findProduto(prisma, dto.pro_id);
+            const produto = await this.findProdutoUuid(prisma, dto.pro_aux_uuid);
 
             await this.validarEstoque(prisma, produto.pro_id, dto.ite_qtd);
 
@@ -40,17 +40,36 @@ export class ReservaService {
         });
     }
 
-    async findProduto(prisma: Prisma.TransactionClient, pro_id: number) {
-        const produto = await prisma.pro_produto.findUnique({
-            where: { pro_id },
-            include: { mov_movimentacao_estoque: true },
+    async findProdutoUuid(
+        prisma: Prisma.TransactionClient,
+        pro_aux_uuid: string
+    ) {
+
+        const produto = await prisma.pro_produto.findFirst({
+            where: { pro_aux_uuid },
+            include: {
+                mov_movimentacao_estoque: true
+            }
         });
 
         if (!produto) {
             throw new NotFoundException('Produto não encontrado');
         }
+
         return produto;
     }
+
+    // async findProduto(prisma: Prisma.TransactionClient, pro_id: number) {
+    //     const produto = await prisma.pro_produto.findUnique({
+    //         where: { pro_id },
+    //         include: { mov_movimentacao_estoque: true },
+    //     });
+
+    //     if (!produto) {
+    //         throw new NotFoundException('Produto não encontrado');
+    //     }
+    //     return produto;
+    // }
 
     async validarEstoque(prisma: Prisma.TransactionClient, pro_id: number, quantidade: number,) {
         const movimentos = await prisma.mov_movimentacao_estoque.findMany({

@@ -6,15 +6,19 @@ export enum Periodo {
 }
 
 export class CreateReservaDto {
-    @IsNotEmpty()
-    @IsNumber()    
-    pro_id: number
+  @IsNotEmpty()
+  @IsNumber()
+  pro_id: number
 
-    @IsNotEmpty()
-    @IsNumber()
-    ite_qtd: number
+  @IsNotEmpty()
+  @IsString()
+  pro_aux_uuid: string;
 
-    @IsNotEmpty()
-    @IsEnum(Periodo)
-    periodo: Periodo;
+  @IsNotEmpty()
+  @IsNumber()
+  ite_qtd: number
+
+  @IsNotEmpty()
+  @IsEnum(Periodo)
+  periodo: Periodo;
 }
