@@ -2,30 +2,37 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma.service';
 import { Prisma, pro_produto, usu_usuario } from 'generated/prisma';
 import * as bcrypt from 'bcrypt';
-import { UpdateUserDto } from './dto/updtade-user.dto';
+import { UpdateUserDto } from './dto/updateUser.dto';
 
 @Injectable()
 export class PerfilService {
     constructor(private readonly prismaService: PrismaService) { }
 
-    async updatePerfil(idNumber: number, dto: UpdateUserDto) {
-        const usuario = await this.prismaService.usu_usuario.findUnique({
-            where: { usu_id: idNumber },
-        });
+    async updatePerfil(id: number, dto: UpdateUserDto) {
 
-        if (!usuario) throw new NotFoundException("Usuário não encontrado");
+        const dadosAtualizados: any = {};
 
-        if (dto.usu_senha) {
-            dto.usu_senha = await bcrypt.hash(dto.usu_senha, 10);
+        if (dto.nome) {
+            dadosAtualizados.usu_nome = dto.nome;
         }
 
-        const atualizado = await this.prismaService.usu_usuario.update({
-            where: { usu_id: idNumber },
-            data: dto,
-        });
+        if (dto.senha) {
 
-        const { usu_senha, ...usuarioSemSenha } = atualizado;
-        return usuarioSemSenha;
+            const senhaHash = await bcrypt.hash(dto.senha, 10);
+
+            dadosAtualizados.usu_senha = senhaHash;
+        }
+
+        if (Object.keys(dadosAtualizados).length === 0) {
+            throw new Error("Nenhum dado enviado");
+        }
+
+        return this.prismaService.usu_usuario.update({
+            where: {
+                usu_id: id,
+            },
+            data: dadosAtualizados,
+        });
     }
 
 

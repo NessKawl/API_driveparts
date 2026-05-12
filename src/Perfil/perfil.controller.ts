@@ -1,6 +1,6 @@
 import { Body, Controller, Patch, UseGuards, Req, Param, Get } from '@nestjs/common';
 import { PerfilService } from './perfil.service';
-import { UpdateUserDto } from './dto/updtade-user.dto';
+import { UpdateUserDto } from './dto/updateUser.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { ReservaService } from '../Reserva/reserva.service'; 
 import { ReservaHistoricoDto } from '../Reserva/dto/reserva-historico.dto';
