@@ -104,7 +104,9 @@ export class ProdutoService {
   });
 }
 
-  async findOneProduct(where: Prisma.pro_produtoWhereUniqueInput): Promise<any> {
+  async findOneProduct(
+    where: Prisma.pro_produtoWhereUniqueInput,
+  ): Promise<any> {
     const produto = await this.prismaService.pro_produto.findUnique({
       where,
       include: {
@@ -117,23 +119,32 @@ export class ProdutoService {
         pro_esp: {
           include: {
             esp_especificacao: true,
-            met_metrica: true
-          }
-        }
+            met_metrica: true,
+          },
+        },
       },
     });
 
     if (!produto) return null;
 
-    const entradas = produto.mov_movimentacao_estoque
-      .filter((m) => m.mov_tipo === 'COMPRA')
-      .reduce((acc, m) => acc + m.mov_qtd, 0);
+    let estoqueAtual = 0;
 
-    const saidas = produto.mov_movimentacao_estoque
-      .filter((m) => m.mov_tipo === 'VENDA')
-      .reduce((acc, m) => acc + m.mov_qtd, 0);
+    produto.mov_movimentacao_estoque.forEach((mov) => {
+      switch (mov.mov_tipo) {
+        case "COMPRA":
+        case "DEVOLUCAO":
+          estoqueAtual += mov.mov_qtd;
+          break;
 
-    const estoqueAtual = entradas - saidas;
+        case "VENDA":
+        case "DEFEITO":
+        case "PERDA":
+        case "VENCIMENTO":
+        case "USO_E_CONSUMO":
+          estoqueAtual -= mov.mov_qtd;
+          break;
+      }
+    });
 
     return {
       pro_id: produto.pro_id,
@@ -147,12 +158,14 @@ export class ProdutoService {
       pro_data_criacao: produto.pro_data_criacao,
       pro_data_modificacao: produto.pro_data_modificacao,
       pro_data_exclusao: produto.pro_data_exclusao,
+
       estoque: estoqueAtual,
-      especificacoes: produto.pro_esp.map(esp => ({
+
+      especificacoes: produto.pro_esp.map((esp) => ({
         nome: esp.esp_especificacao.esp_nome,
         valor: esp.pro_esp_valor,
-        unidade: esp.met_metrica.met_nome
-      }))
+        unidade: esp.met_metrica.met_nome,
+      })),
     };
   }
 
