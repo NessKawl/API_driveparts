@@ -5,9 +5,13 @@ import { UsuarioService } from 'src/Usuario/usuario.service';
 import { CreateUserDto } from 'src/Usuario/dto/create-user.dto';
 import { usu_usuario } from 'generated/prisma';
 import { PrismaService } from 'src/prisma.service';
+import { Logger } from '@nestjs/common';
 
 @Injectable()
 export class AuthService {
+
+    private readonly logger = new Logger(AuthService.name);
+
     constructor(
         private usuarioService: UsuarioService,
         private jwtService: JwtService,
@@ -20,39 +24,55 @@ export class AuthService {
         });
 
         if (usuarioExistente) {
+            this.logger.warn(
+                `REGISTER FAILED - PHONE ALREADY EXISTS - TEL: ${data.usu_tel}`
+            );
+
             throw new ConflictException('Telefone já cadastrado');
         }
 
         const hashPassword = await bcrypt.hash(data.usu_senha, 10);
 
-        return this.prismaService.usu_usuario.create({
+        const novoUsuario = await this.prismaService.usu_usuario.create({
             data: {
                 ...data,
                 usu_senha: hashPassword,
                 usu_status: true
             }
-        })
+        });
+
+        this.logger.log(
+            `USER CREATED - TEL: ${novoUsuario.usu_tel}`
+        );
+
+        return novoUsuario;
     }
 
     async validateUser(usu_tel: string, senhaRecebida: string): Promise<any> {
         const user = await this.usuarioService.findOneByTelefone(usu_tel);
 
         if (!user) {
-            console.log("Usuario não encontrado no DB");
+            this.logger.warn(
+                `LOGIN FAILED - USER NOT FOUND - TEL: ${usu_tel}`
+            );
             return null;
         }
 
-        console.log('Hash do DB:', user.usu_senha);
+        /*console.log('Hash do DB:', user.usu_senha);*/
 
         const isPasswordValid = await bcrypt.compare(senhaRecebida, user.usu_senha);
 
         if (isPasswordValid) {
-            console.log('SUCESSO: Usuário validado.');
+            this.logger.log(
+                `LOGIN SUCCESS - USER: ${user.usu_nome}`
+            );
             const { usu_senha, ...result } = user;
             return result;
         }
 
-        console.log('ERRO: Senha inválida.');
+        this.logger.warn(
+            `LOGIN FAILED - INVALID PASSWORD - TEL: ${usu_tel}`
+        );
         return null;
     }
 

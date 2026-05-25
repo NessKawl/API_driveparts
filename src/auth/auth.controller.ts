@@ -6,6 +6,7 @@ import { CreateUserDto } from 'src/Usuario/dto/create-user.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { Throttle } from '@nestjs/throttler';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { Logger } from '@nestjs/common';
 
 @Controller('auth')
 export class AuthController {
