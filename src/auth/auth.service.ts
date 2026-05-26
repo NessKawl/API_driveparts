@@ -80,6 +80,7 @@ export class AuthService {
         const payload = {
             usu_tel: user.usu_tel,
             usu_nome: user.usu_nome,
+            usu_tipo: user.usu_tipo,
             sub: user.usu_id
         };
 

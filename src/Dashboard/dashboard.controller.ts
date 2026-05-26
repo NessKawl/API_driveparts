@@ -2,9 +2,12 @@ import { Controller, Get, Patch, Param, Body, UseGuards, ParseIntPipe } from '@n
 import { AuthUser } from 'src/auth/decorators/auth-user.decorator';
 import { DashboardService } from './dashboard.service';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { RolesGuard } from 'src/auth/guards/roles.guards';
+import { Roles } from 'src/auth/decorators/roles.decorator';
 
 @Controller('dashboard')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles('ADMIN')
 export class DashboardController {
   constructor(private readonly dashboardService: DashboardService) { }
 
