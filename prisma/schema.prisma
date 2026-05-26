@@ -63,6 +63,7 @@ model usu_usuario {
   usu_tel              String      @unique @db.VarChar(45)
   usu_senha            String      @db.VarChar(255)
   usu_status           Boolean
+  usu_tipo             TipoUsuario @default(USUARIO)
   usu_data_criacao     DateTime    @default(now())
   usu_data_modificacao DateTime    @default(now())
   usu_data_exclusao    DateTime?
@@ -129,6 +130,11 @@ model pro_esp {
   @@index([esp_id], map: "pro_esp_esp_id_fkey")
   @@index([met_id], map: "pro_esp_met_id_fkey")
   @@map("pro_esp")
+}
+
+enum TipoUsuario {
+  ADMIN
+  USUARIO
 }
 
 enum VenStatus {
