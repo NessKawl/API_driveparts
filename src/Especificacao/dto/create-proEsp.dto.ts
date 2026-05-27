@@ -18,10 +18,6 @@ export class createProEspDto {
   @IsNotEmpty()
   pro_id: number;
 
-  @IsNumber()
-  @IsNotEmpty()
-  met_id: number;
-
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => EspItemDto)
