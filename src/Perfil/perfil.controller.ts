@@ -1,8 +1,8 @@
-import { Body, Controller, Patch, UseGuards, Req, Param, Get } from '@nestjs/common';
+import { Body, Controller, Patch, UseGuards, Req, Param, Get, Delete } from '@nestjs/common';
 import { PerfilService } from './perfil.service';
 import { UpdateUserDto } from './dto/updateUser.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
-import { ReservaService } from '../Reserva/reserva.service'; 
+import { ReservaService } from '../Reserva/reserva.service';
 import { ReservaHistoricoDto } from '../Reserva/dto/reserva-historico.dto';
 import { ClassSerializerInterceptor, UseInterceptors } from '@nestjs/common';
 import { AuthUser } from 'src/auth/decorators/auth-user.decorator';
@@ -33,6 +33,14 @@ export class PerfilController {
     @UseGuards(JwtAuthGuard)
     async getHistoricoGeral(@AuthUser('id') usuIdLogado: number): Promise<ReservaHistoricoDto[]> {
         return this.reservaService.findHistoricoGeral(usuIdLogado);
+    }
+
+    @Delete('deletar')
+    @UseGuards(JwtAuthGuard)
+    async deletarConta(
+        @AuthUser('id') id: number
+    ) {
+        return this.perfilService.deletarConta(id);
     }
 
 }

@@ -48,5 +48,26 @@ export class PerfilService {
         return usuarioAtualizado;
     }
 
+    async deletarConta(id: number) {
+
+        return this.prismaService.usu_usuario.update({
+            where: {
+                usu_id: id,
+            },
+            data: {
+
+                usu_nome: "Usuário Removido",
+
+                usu_tel: `anon_${id}`,
+
+                usu_senha: "CONTA_REMOVIDA",
+
+                usu_status: false,
+
+                usu_data_exclusao: new Date(),
+            },
+        });
+    }
+
 
 }
