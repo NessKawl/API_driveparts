@@ -1,12 +1,11 @@
-import {
-    Injectable,
-    BadRequestException,
-} from '@nestjs/common';
+import { Injectable, BadRequestException, } from '@nestjs/common';
 
 import * as bcrypt from 'bcrypt';
 
 import { PrismaService } from '../prisma.service';
 import { UsuarioService } from '../Usuario/usuario.service';
+
+import axios from 'axios';
 
 @Injectable()
 export class EsqueciSenhaService {
@@ -49,6 +48,19 @@ export class EsqueciSenhaService {
                 tem_expiresAt: new Date(Date.now() + 60 * 1000,),
             },
         });
+
+        try {
+            await axios.post(
+                "http://localhost:5678/webhook/083fec6a-300d-45dd-964e-d3e20dc6394f",
+                {
+                    telefone: usuario.usu_tel,
+                    codigo,
+                    nome: usuario.usu_nome,
+                }
+            );
+        } catch (error) {
+            console.error('Erro ao enviar código via WhatsApp:', error);
+        }
 
         return {
             message:

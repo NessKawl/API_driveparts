@@ -32,6 +32,7 @@
     "@nestjs/throttler": "^6.5.0",
     "@prisma/adapter-mariadb": "^6.17.1",
     "@prisma/client": "^6.18.0",
+    "axios": "^1.16.1",
     "bcrypt": "^6.0.0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.2",
