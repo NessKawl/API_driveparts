@@ -11,9 +11,10 @@ import { DashboardModule } from './Dashboard/dashboard.module';
 import { UploadModule } from './upload/upload.module';
 import { MovimentacaoModule } from './Movimentacao/movimentacao.module';
 import { EspecificacaoModule } from './Especificacao/especificacao.module';
+import { EsqueciSenhaModule } from './esqueci-senha/esqueci-senha.module';
 
 @Module({
-  imports: [UsuarioModule, AuthModule, ProdutoModule, PerfilModule, ReservaModule, DashboardModule, UploadModule, MovimentacaoModule, EspecificacaoModule],
+  imports: [UsuarioModule, AuthModule, ProdutoModule, PerfilModule, ReservaModule, DashboardModule, UploadModule, MovimentacaoModule, EspecificacaoModule, EsqueciSenhaModule],
   controllers: [AppController],
   providers: [AppService, PrismaService],
   exports: [PrismaService],

@@ -23,6 +23,7 @@ model pro_produto {
   mov_movimentacao_estoque mov_movimentacao_estoque[]
   ite_itemVenda            ite_itemVenda[]
   pro_esp                  pro_esp[]
+  pro_qtd                  Int                        @default(0)
 
   @@map("pro_produto")
 }
@@ -68,6 +69,7 @@ model usu_usuario {
   usu_data_modificacao DateTime    @default(now())
   usu_data_exclusao    DateTime?
   ven_venda            ven_venda[]
+  tem_temp_code        tem_temp_code[]
 
   @@map("usu_usuario")
 }
@@ -130,6 +132,19 @@ model pro_esp {
   @@index([esp_id], map: "pro_esp_esp_id_fkey")
   @@index([met_id], map: "pro_esp_met_id_fkey")
   @@map("pro_esp")
+}
+
+model tem_temp_code {
+  tem_id         Int      @id @default(autoincrement())
+  tem_code       String
+  tem_expiresAt  DateTime
+  tem_createdAt  DateTime @default(now())
+  tem_used       Boolean  @default(false)
+
+  usu_id     Int
+  user       usu_usuario @relation(fields: [usu_id], references: [usu_id], onDelete: Cascade)
+
+  @@index([usu_id])
 }
 
 enum TipoUsuario {
