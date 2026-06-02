@@ -30,6 +30,18 @@ export class ReservaService {
 
             await this.registrarMovimentacao(prisma, produto.pro_id, venda.ven_id, dto.ite_qtd, 'VENDA');
 
+            await prisma.pro_produto.update({
+                where: {
+                    pro_id: produto.pro_id,
+                },
+                data: {
+                    pro_qtd: {
+                        decrement: dto.ite_qtd,
+                    },
+                },
+            });
+
+
             return {
                 ven_id: venda.ven_id,
                 pro_id: produto.pro_id,
@@ -72,24 +84,17 @@ export class ReservaService {
     // }
 
     async validarEstoque(prisma: Prisma.TransactionClient, pro_id: number, quantidade: number,) {
-        const movimentos = await prisma.mov_movimentacao_estoque.findMany({
-            where: { pro_id },
-            orderBy: { mov_data: 'asc' },
+        const produto = await prisma.pro_produto.findUnique({
+            where: { pro_id }
         });
 
-        let saldo = 0;
-
-        for (const mov of movimentos) {
-            if (mov.mov_tipo === 'COMPRA') {
-                saldo += mov.mov_qtd;
-            } else if (mov.mov_tipo === 'VENDA') {
-                saldo -= mov.mov_qtd;
-            }
+        if (!produto) {
+            throw new NotFoundException('Produto não encontrado');
         }
 
-        if (saldo < quantidade) {
+        if (produto.pro_qtd < quantidade) {
             throw new BadRequestException(
-                `Quantidade indisponível em estoque. Saldo atual: ${saldo}`,
+                `Quantidade indisponível em estoque. Saldo atual: ${produto.pro_qtd}`
             );
         }
     }
@@ -166,6 +171,17 @@ export class ReservaService {
                             mov_data: new Date(),
                         },
                     });
+
+                    await prisma.pro_produto.update({
+                        where: {
+                            pro_id: item.pro_id
+                        },
+                        data: {
+                            pro_qtd: {
+                                increment: item.ite_qtd
+                            }
+                        }
+                    });
                 }
             }
 
@@ -230,151 +246,216 @@ export class ReservaService {
     }
 
     async buscarReservaProduto(termo: string) {
-    const produtos = await this.prismaService.pro_produto.findMany({
-        where: {
-            pro_status: true,
-            ...(termo && termo.trim() !== '' && {
-                OR: [
-  {
-    pro_nome: {
-      contains: termo,
-    },
-  },
-  {
-    pro_cod: {
-      contains: termo,
-    },
-  },
-],
-            }),
-        },
-
-        include: {
-            mov_movimentacao_estoque: {
-                select: {
-                    mov_qtd: true,
-                    mov_tipo: true,
-                },
+        const produtos = await this.prismaService.pro_produto.findMany({
+            where: {
+                pro_status: true,
+                ...(termo && termo.trim() !== '' && {
+                    OR: [
+                        {
+                            pro_nome: {
+                                contains: termo,
+                            },
+                        },
+                        {
+                            pro_cod: {
+                                contains: termo,
+                            },
+                        },
+                    ],
+                }),
             },
-        },
-    });
+        });
 
-    return produtos.map((produto) => {
-        const entradas = produto.mov_movimentacao_estoque
-            .filter((mov) =>
-                ['COMPRA', 'DEVOLUCAO', 'OUTROS'].includes(mov.mov_tipo),
-            )
-            .reduce((acc, mov) => acc + mov.mov_qtd, 0);
-
-        const saidas = produto.mov_movimentacao_estoque
-            .filter((mov) =>
-                [
-                    'VENDA',
-                    'DEFEITO',
-                    'PERDA',
-                    'VENCIMENTO',
-                    'USO_E_CONSUMO',
-                ].includes(mov.mov_tipo),
-            )
-            .reduce((acc, mov) => acc + mov.mov_qtd, 0);
-
-        const estoque = entradas - saidas;
-
-        return {
+        return produtos.map((produto) => ({
             pro_id: produto.pro_id,
+            pro_aux_uuid: produto.pro_aux_uuid,
             pro_nome: produto.pro_nome,
             pro_valor: produto.pro_valor,
             pro_cod: produto.pro_cod,
             pro_marca: produto.pro_marca,
             pro_status: produto.pro_status,
             pro_caminho_img: produto.pro_caminho_img,
-            estoque,
-        };
-    });
-}
+            estoque: produto.pro_qtd,
+        }));
+    }
 
     async adicionarItem(usu_id: number, dto: AdicionarItemDto) {
         const { pro_id: produtoId, quantidade, ite_valor_unit } = dto;
-        if (quantidade <= 0) throw new BadRequestException('Quantidade deve ser maior que zero.');
+
+        if (quantidade <= 0) {
+            throw new BadRequestException(
+                'Quantidade deve ser maior que zero.'
+            );
+        }
 
         return this.prismaService.$transaction(async (prisma) => {
-            const produto = await prisma.pro_produto.findUnique({ where: { pro_id: produtoId } });
-            if (!produto) throw new NotFoundException('Produto não encontrado.');
 
-            const movimentos = await prisma.mov_movimentacao_estoque.findMany({
-                where: { pro_id: produtoId },
+            const produto = await prisma.pro_produto.findUnique({
+                where: { pro_id: produtoId }
             });
-            let saldo = 0;
-            for (const mov of movimentos) saldo += mov.mov_tipo === 'COMPRA' ? mov.mov_qtd : -mov.mov_qtd;
 
-            if (quantidade > saldo) {
-                throw new BadRequestException(`Estoque insuficiente. Saldo atual: ${saldo}`);
+            if (!produto) {
+                throw new NotFoundException(
+                    'Produto não encontrado.'
+                );
             }
 
-            let venda = await prisma.ven_venda.findUnique({ where: { ven_id: dto.ven_id } });
+            // valida usando pro_qtd
+            if (quantidade > produto.pro_qtd) {
+                throw new BadRequestException(
+                    `Estoque insuficiente. Saldo atual: ${produto.pro_qtd}`
+                );
+            }
+
+            const venda = await prisma.ven_venda.findUnique({
+                where: { ven_id: dto.ven_id }
+            });
+
             if (!venda) {
-                throw new BadRequestException('Venda não encontrada.');
+                throw new BadRequestException(
+                    'Venda não encontrada.'
+                );
             }
-            const itemExistente = await prisma.ite_itemVenda.findFirst({
-                where: { ven_id: venda.ven_id, pro_id: produtoId },
-            });
 
-            const valorUnit = ite_valor_unit ?? Number(produto.pro_valor);
-            const novoItemValor = valorUnit * quantidade;
-
-            let itemResult;
-            if (itemExistente) {
-                const novaQtd = itemExistente.ite_qtd + quantidade;
-                const novoValor = itemExistente.ite_valor + novoItemValor;
-                itemResult = await prisma.ite_itemVenda.update({
-                    where: { ite_id: itemExistente.ite_id },
-                    data: { ite_qtd: novaQtd, ite_valor: novoValor },
-                });
-            } else {
-                itemResult = await prisma.ite_itemVenda.create({
-                    data: {
+            const itemExistente =
+                await prisma.ite_itemVenda.findFirst({
+                    where: {
                         ven_id: venda.ven_id,
                         pro_id: produtoId,
-                        ite_qtd: quantidade,
-                        ite_valor: novoItemValor,
                     },
                 });
+
+            const valorUnit =
+                ite_valor_unit ?? Number(produto.pro_valor);
+
+            const novoItemValor =
+                valorUnit * quantidade;
+
+            let itemResult;
+
+            if (itemExistente) {
+
+                const novaQtd =
+                    itemExistente.ite_qtd + quantidade;
+
+                const novoValor =
+                    itemExistente.ite_valor + novoItemValor;
+
+                itemResult =
+                    await prisma.ite_itemVenda.update({
+                        where: {
+                            ite_id: itemExistente.ite_id
+                        },
+                        data: {
+                            ite_qtd: novaQtd,
+                            ite_valor: novoValor,
+                        },
+                    });
+
+            } else {
+
+                itemResult =
+                    await prisma.ite_itemVenda.create({
+                        data: {
+                            ven_id: venda.ven_id,
+                            pro_id: produtoId,
+                            ite_qtd: quantidade,
+                            ite_valor: novoItemValor,
+                        },
+                    });
+
             }
 
+            // registra histórico
             await prisma.mov_movimentacao_estoque.create({
-                data: { pro_id: produtoId, ven_id: venda.ven_id, mov_qtd: quantidade, mov_tipo: 'VENDA', mov_data: new Date() },
+                data: {
+                    pro_id: produtoId,
+                    ven_id: venda.ven_id,
+                    mov_qtd: quantidade,
+                    mov_tipo: 'VENDA',
+                    mov_data: new Date(),
+                },
             });
 
-            const itensDaVenda = await prisma.ite_itemVenda.findMany({ where: { ven_id: venda.ven_id } });
-            const novoTotal = itensDaVenda.reduce((acc, it) => acc + Number(it.ite_valor), 0);
+            // atualiza estoque atual
+            await prisma.pro_produto.update({
+                where: {
+                    pro_id: produtoId,
+                },
+                data: {
+                    pro_qtd: {
+                        decrement: quantidade,
+                    },
+                },
+            });
+
+            const itensDaVenda =
+                await prisma.ite_itemVenda.findMany({
+                    where: {
+                        ven_id: venda.ven_id
+                    }
+                });
+
+            const novoTotal =
+                itensDaVenda.reduce(
+                    (acc, it) => acc + Number(it.ite_valor),
+                    0
+                );
+
             await prisma.ven_venda.update({
-                where: { ven_id: venda.ven_id },
-                data: { ven_valor: novoTotal, ven_data_modificacao: new Date() },
+                where: {
+                    ven_id: venda.ven_id
+                },
+                data: {
+                    ven_valor: novoTotal,
+                    ven_data_modificacao: new Date(),
+                },
             });
 
-            return { vendaId: venda.ven_id, item: itemResult, vendaTotal: novoTotal };
+            return {
+                vendaId: venda.ven_id,
+                item: itemResult,
+                vendaTotal: novoTotal,
+            };
         });
     }
 
-    async removerItem(usu_id: number, ven_id: number, pro_id: number) {
+    async removerItem(usu_id: number,ven_id: number,pro_id: number) {
         return this.prismaService.$transaction(async (prisma) => {
 
             const venda = await prisma.ven_venda.findUnique({
                 where: { ven_id },
-                include: { ite_itemVenda: true }
+                include: {
+                    ite_itemVenda: true
+                }
             });
 
-            if (!venda) throw new NotFoundException('Venda não encontrada');
+            if (!venda) {
+                throw new NotFoundException(
+                    'Venda não encontrada'
+                );
+            }
 
-            if (venda.usu_id !== usu_id)
-                throw new BadRequestException('Sem permissão');
+            if (venda.usu_id !== usu_id) {
+                throw new BadRequestException(
+                    'Sem permissão'
+                );
+            }
 
             const item = await prisma.ite_itemVenda.findFirst({
-                where: { ven_id, pro_id }
+                where: {
+                    ven_id,
+                    pro_id
+                }
             });
 
-            if (!item) throw new NotFoundException('Item não encontrado');
+            if (!item) {
+                throw new NotFoundException(
+                    'Item não encontrado'
+                );
+            }
 
+            // registra devolução no histórico
             await prisma.mov_movimentacao_estoque.create({
                 data: {
                     pro_id,
@@ -385,13 +466,31 @@ export class ReservaService {
                 }
             });
 
-            await prisma.ite_itemVenda.delete({
-                where: { ite_id: item.ite_id }
+            // devolve quantidade ao estoque atual
+            await prisma.pro_produto.update({
+                where: {
+                    pro_id
+                },
+                data: {
+                    pro_qtd: {
+                        increment: item.ite_qtd
+                    }
+                }
             });
 
-            const itensRestantes = await prisma.ite_itemVenda.findMany({
-                where: { ven_id }
+            // remove item da venda
+            await prisma.ite_itemVenda.delete({
+                where: {
+                    ite_id: item.ite_id
+                }
             });
+
+            const itensRestantes =
+                await prisma.ite_itemVenda.findMany({
+                    where: {
+                        ven_id
+                    }
+                });
 
             const novoTotal = itensRestantes.reduce(
                 (acc, it) => acc + Number(it.ite_valor),
@@ -399,14 +498,18 @@ export class ReservaService {
             );
 
             await prisma.ven_venda.update({
-                where: { ven_id },
+                where: {
+                    ven_id
+                },
                 data: {
                     ven_valor: novoTotal,
                     ven_data_modificacao: new Date()
                 }
             });
 
-            return { message: 'Item removido com sucesso' };
+            return {
+                message: 'Item removido com sucesso'
+            };
         });
     }
 
@@ -458,32 +561,59 @@ export class ReservaService {
     }
 
     async removerReserva(ven_id: number) {
-
+        
         const reserva = await this.prismaService.ven_venda.findUnique({
             where: { ven_id }
         });
 
         if (!reserva) {
-            throw new NotFoundException('Reserva não encontrada');
+            throw new NotFoundException(
+                'Reserva não encontrada'
+            );
         }
 
-        await this.prismaService.$transaction([
+        return this.prismaService.$transaction(async (prisma) => {
 
-            this.prismaService.ite_itemVenda.deleteMany({
+            // busca todos os itens da reserva
+            const itens = await prisma.ite_itemVenda.findMany({
                 where: { ven_id }
-            }),
+            });
 
-            this.prismaService.mov_movimentacao_estoque.deleteMany({
+            // devolve ao estoque
+            for (const item of itens) {
+
+                await prisma.pro_produto.update({
+                    where: {
+                        pro_id: item.pro_id
+                    },
+                    data: {
+                        pro_qtd: {
+                            increment: item.ite_qtd
+                        }
+                    }
+                });
+
+            }
+
+            // remove os itens
+            await prisma.ite_itemVenda.deleteMany({
                 where: { ven_id }
-            }),
+            });
 
-            this.prismaService.ven_venda.delete({
+            // remove as movimentações
+            await prisma.mov_movimentacao_estoque.deleteMany({
                 where: { ven_id }
-            })
+            });
 
-        ]);
+            // remove a venda/reserva
+            await prisma.ven_venda.delete({
+                where: { ven_id }
+            });
 
-        return { message: 'Reserva removida com sucesso' };
+            return {
+                message: 'Reserva removida com sucesso'
+            };
+        });
     }
 
 }

@@ -28,11 +28,11 @@ export class ProdutoService {
 
     return produtos.map((p) => {
       const entradas = p.mov_movimentacao_estoque
-        .filter((m) => m.mov_tipo === 'COMPRA')
+        .filter((m) => m.mov_tipo === 'COMPRA' || m.mov_tipo === 'DEVOLUCAO' || m.mov_tipo === 'OUTROS')
         .reduce((acc, m) => acc + m.mov_qtd, 0);
 
       const saidas = p.mov_movimentacao_estoque
-        .filter((m) => m.mov_tipo === 'VENDA')
+        .filter((m) => m.mov_tipo === 'VENDA' || m.mov_tipo === 'DEFEITO' || m.mov_tipo === 'PERDA' || m.mov_tipo === 'VENCIMENTO' || m.mov_tipo === 'USO_E_CONSUMO')
         .reduce((acc, m) => acc + m.mov_qtd, 0);
 
       const estoqueAtual = entradas - saidas;
@@ -135,6 +135,7 @@ export class ProdutoService {
       switch (mov.mov_tipo) {
         case "COMPRA":
         case "DEVOLUCAO":
+        case "OUTROS":
           estoqueAtual += mov.mov_qtd;
           break;
 
@@ -172,7 +173,17 @@ export class ProdutoService {
   }
 
   async createProduct(data: CreateProductDto): Promise<pro_produto> {
-    return this.prismaService.pro_produto.create({ data });
+    return this.prismaService.pro_produto.create({
+      data: {
+        pro_nome: data.pro_nome,
+        pro_valor: data.pro_valor,
+        pro_marca: data.pro_marca,
+        pro_cod: data.pro_cod,
+        pro_status: data.pro_status,
+        pro_qtd: data.pro_qtd,
+        pro_caminho_img: data.pro_caminho_img || null,
+      },
+    });
   }
 
   async updateProduct(

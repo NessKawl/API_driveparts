@@ -1,4 +1,5 @@
-import { IsString, IsNotEmpty, IsDate, IsNumber, IsBoolean } from 'class-validator';
+import { IsString, IsNotEmpty, IsDate, IsNumber, IsBoolean, IsOptional } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class CreateProductDto {
 
@@ -20,4 +21,13 @@ export class CreateProductDto {
 
   @IsBoolean()
   pro_status: boolean;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  pro_qtd?: number;
+
+  @IsOptional()
+  @IsString()
+  pro_caminho_img?: string | null;
 }
