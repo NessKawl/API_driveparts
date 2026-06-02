@@ -58,6 +58,14 @@ export class AuthService {
             return null;
         }
 
+        if (!user.usu_status) {
+            this.logger.warn(
+                `LOGIN FAILED - ACCOUNT DISABLED - TEL: ${usu_tel}`
+            );
+
+            return null;
+        }
+
         /*console.log('Hash do DB:', user.usu_senha);*/
 
         const isPasswordValid = await bcrypt.compare(senhaRecebida, user.usu_senha);
