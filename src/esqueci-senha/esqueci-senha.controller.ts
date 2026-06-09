@@ -40,4 +40,20 @@ export class EsqueciSenhaController {
                 novaSenha,
             );
     }
+
+    @Post('login-codigo')
+    loginCodigo(
+        @Body()
+        body: {
+            telefone: string;
+            codigo: string;
+        },
+    ) {
+        return this
+            .esqueciSenhaService
+            .loginComCodigo(
+                body.telefone,
+                body.codigo,
+            );
+    }
 }

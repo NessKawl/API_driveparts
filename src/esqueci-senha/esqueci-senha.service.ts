@@ -20,7 +20,7 @@ export class EsqueciSenhaService {
         if (!usuario) {
             return {
                 message:
-                    'Se existir uma conta, enviaremos um código.',
+                    'Usuário não encontrado.',
             };
         }
 
@@ -51,7 +51,7 @@ export class EsqueciSenhaService {
 
         try {
             await axios.post(
-                "http://localhost:5678/webhook/083fec6a-300d-45dd-964e-d3e20dc6394f",
+                process.env.N8N_WEBHOOK_URL!,
                 {
                     telefone: usuario.usu_tel,
                     codigo,
@@ -158,6 +158,67 @@ export class EsqueciSenhaService {
         return {
             message:
                 'Senha alterada com sucesso.',
+        };
+    }
+
+    async loginComCodigo(
+        telefone: string,
+        codigo: string,
+    ) {
+        const usuario =
+            await this
+                .usuarioService
+                .findOneByTelefone(
+                    telefone
+                );
+
+        if (!usuario) {
+            throw new BadRequestException(
+                'Usuário inválido'
+            );
+        }
+
+        const codigoValido =
+            await this
+                .prismaService
+                .tem_temp_code
+                .findFirst({
+                    where: {
+                        usu_id:
+                            usuario.usu_id,
+                        tem_code:
+                            codigo,
+                        tem_used:
+                            false,
+                        tem_expiresAt: {
+                            gt: new Date(),
+                        },
+                    },
+                });
+
+        if (!codigoValido) {
+            throw new BadRequestException(
+                'Código inválido'
+            );
+        }
+
+        // invalida código
+        await this
+            .prismaService
+            .tem_temp_code
+            .update({
+                where: {
+                    tem_id:
+                        codigoValido.tem_id,
+                },
+                data: {
+                    tem_used:
+                        true,
+                },
+            });
+
+        return {
+            user: usuario,
         };
     }
 }

@@ -6,6 +6,7 @@ import { CreateUserDto } from 'src/Usuario/dto/create-user.dto';
 import { usu_usuario } from 'generated/prisma';
 import { PrismaService } from 'src/prisma.service';
 import { Logger } from '@nestjs/common';
+import axios from 'axios';
 
 @Injectable()
 export class AuthService {
@@ -99,4 +100,6 @@ export class AuthService {
             user: userData
         };
     }
+
+
 }
