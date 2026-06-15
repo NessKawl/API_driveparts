@@ -32,4 +32,16 @@ export class AuthController {
     getProfile(@Request() req) {
         return req.user;
     }
+
+    @Post('validar')
+    async validarCodigo(
+        @Body('telefone') telefone: string,
+        @Body('codigo') codigo: string,
+    ) {
+        return this.authService.validarCodigo(
+            telefone,
+            codigo,
+        );
+    }
+
 }

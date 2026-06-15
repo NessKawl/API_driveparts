@@ -16,16 +16,16 @@ export class EsqueciSenhaController {
         );
     }
 
-    @Post('validar')
-    async validarCodigo(
-        @Body('telefone') telefone: string,
-        @Body('codigo') codigo: string,
-    ) {
-        return this.esqueciSenhaService.validarCodigo(
-            telefone,
-            codigo,
-        );
-    }
+    // @Post('validar')
+    // async validarCodigo(
+    //     @Body('telefone') telefone: string,
+    //     @Body('codigo') codigo: string,
+    // ) {
+    //     return this.esqueciSenhaService.validarCodigo(
+    //         telefone,
+    //         codigo,
+    //     );
+    // }
 
     @Post('redefinir')
     async redefinirSenha(

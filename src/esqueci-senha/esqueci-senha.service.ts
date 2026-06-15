@@ -69,42 +69,6 @@ export class EsqueciSenhaService {
     }
 
     // Validar código temporário
-    async validarCodigo(telefone: string, codigo: string,) {
-        const usuario = await this.usuarioService.findOneByTelefone(telefone);
-
-        if (!usuario) {
-            throw new BadRequestException(
-                'Código inválido',
-            );
-        }
-
-        const todosCodigos = await this.prismaService.tem_temp_code.findMany({
-            where: {
-                usu_id: usuario.usu_id,
-            },
-        });
-
-        const codigoValido = await this.prismaService.tem_temp_code.findFirst({
-            where: {
-                usu_id: usuario.usu_id,
-                tem_code: codigo,
-                tem_used: false,
-                tem_expiresAt: {
-                    gt: new Date(),
-                },
-            },
-        });
-
-        if (!codigoValido) {
-            throw new BadRequestException(
-                'Código inválido ou expirado',
-            );
-        }
-
-        return {
-            valid: true,
-        };
-    }
 
     // Redefinir senha usando o código temporário 
     async redefinirSenha(telefone: string, codigo: string, novaSenha: string) {

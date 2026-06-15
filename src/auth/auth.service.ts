@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, BadRequestException, ConflictException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { UsuarioService } from 'src/Usuario/usuario.service';
@@ -101,5 +101,49 @@ export class AuthService {
         };
     }
 
+    async validarCodigo(telefone: string, codigo: string,) {
+        const usuario = await this.usuarioService.findOneByTelefone(telefone);
+
+        if (!usuario) {
+            throw new BadRequestException(
+                'Código inválido',
+            );
+        }
+
+        const todosCodigos = await this.prismaService.tem_temp_code.findMany({
+            where: {
+                usu_id: usuario.usu_id,
+            },
+        });
+
+        const codigoValido = await this.prismaService.tem_temp_code.findFirst({
+            where: {
+                usu_id: usuario.usu_id,
+                tem_code: codigo,
+                tem_used: false,
+                tem_expiresAt: {
+                    gt: new Date(),
+                },
+            },
+        });
+
+        if (!codigoValido) {
+            throw new BadRequestException(
+                'Código inválido ou expirado',
+            );
+        }
+
+        const payload = {
+            usu_tel: usuario.usu_tel,
+            usu_nome: usuario.usu_nome,
+            usu_tipo: usuario.usu_tipo,
+            sub: usuario.usu_id
+        };
+
+        return {
+            access_token: this.jwtService.sign(payload),
+            user: usuario
+        };
+    }
 
 }
