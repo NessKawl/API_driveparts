@@ -125,6 +125,90 @@ export class EsqueciSenhaService {
         };
     }
 
+    async reenviarCodigo(
+        telefone: string
+    ) {
+        const usuario =
+            await this
+                .usuarioService
+                .findOneByTelefone(
+                    telefone
+                );
+
+        if (!usuario) {
+            throw new BadRequestException(
+                'Usuário não encontrado.'
+            );
+        }
+
+        // Inativa códigos antigos
+        await this
+            .prismaService
+            .tem_temp_code
+            .updateMany({
+                where: {
+                    usu_id:
+                        usuario.usu_id,
+                    tem_used:
+                        false,
+                },
+                data: {
+                    tem_used:
+                        true,
+                },
+            });
+
+        // Gera novo código
+        const codigo =
+            Math.floor(
+                10000 +
+                Math.random() *
+                90000
+            ).toString();
+
+        // Salva novo código
+        await this
+            .prismaService
+            .tem_temp_code
+            .create({
+                data: {
+                    tem_code:
+                        codigo,
+                    usu_id:
+                        usuario.usu_id,
+                    tem_expiresAt:
+                        new Date(
+                            Date.now() +
+                            60 * 1000
+                        ),
+                },
+            });
+
+        try {
+            await axios.post(
+                process.env
+                    .N8N_WEBHOOK_URL!,
+                {
+                    telefone:
+                        usuario.usu_tel,
+                    codigo,
+                    nome:
+                        usuario.usu_nome,
+                }
+            );
+        } catch (error) {
+            console.error(
+                'Erro ao reenviar código:',
+                error
+            );
+        }
+
+        return {
+            message:
+                'Código reenviado com sucesso.',
+        };
+    }
+
     async loginComCodigo(
         telefone: string,
         codigo: string,

@@ -97,7 +97,8 @@ export class AuthService {
 
         return {
             access_token: this.jwtService.sign(payload),
-            user: userData
+            user: userData,
+            valid: true
         };
     }
 

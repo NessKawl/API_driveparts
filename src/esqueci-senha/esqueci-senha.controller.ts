@@ -27,6 +27,18 @@ export class EsqueciSenhaController {
     //     );
     // }
 
+    @Post('reenviar-codigo')
+    async reenviarCodigo(
+        @Body('telefone')
+        telefone: string,
+    ) {
+        return this
+            .esqueciSenhaService
+            .reenviarCodigo(
+                telefone
+            );
+    }
+
     @Post('redefinir')
     async redefinirSenha(
         @Body('telefone') telefone: string,
